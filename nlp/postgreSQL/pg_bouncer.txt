@@ -1,0 +1,23 @@
+1) http://winpg.jp/~saito/pgbouncer/
+2) pgbouncer.ini :
+
+[databases]
+postgres = host=127.0.0.1 port=5431 dbname=postgres
+
+[pgbouncer]
+listen_port = 6543
+listen_addr = 127.0.0.1
+auth_type = md5
+auth_file = C:\Programs\pgbouncer-1.5.4-win32\users.txt
+logfile = C:\Programs\pgbouncer-1.5.4-win32\pgbouncer.log
+pidfile = C:\Programs\pgbouncer-1.5.4-win32\pgbouncer.pid
+admin_users = postgres
+ignore_startup_parameters = extra_float_digits
+
+
+3) users.txt: 
+
+"testuser" "password"
+
+4) pgbouncer.exe -regservice pgbouncer.ini
+	net start pgbouncer 
