@@ -1,7 +1,6 @@
 package pl.edu.agh.nlp.spark;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,34 +19,36 @@ import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
 
 public class SparkLDA {
-	public static void main(String[] args) throws ClassNotFoundException, SQLException {
-		SparkConf sparkConf = new SparkConf().setAppName("LDA").setMaster("local[2]");
-
+	public static void main(String[] args) throws ClassNotFoundException,
+			SQLException {
+		SparkConf sparkConf = new SparkConf().setAppName("LDA").setMaster(
+				"local[2]");
 		JavaSparkContext sc = new JavaSparkContext(sparkConf);
-
 		SQLContext sqlContext = new SQLContext(sc);
 
 		Map<String, String> options = new HashMap<String, String>();
-		options.put("url", "jdbc:postgresql://127.0.0.1:6543/postgres?user=postgres&password=postgres");
+		options.put("url",
+				"jdbc:postgresql://127.0.0.1:6543/postgres?user=postgres&password=postgres");
 		options.put("dbtable", "public.TMP");
-
 		DataFrame jdbcDF = sqlContext.load("jdbc", options);
 
-		HashingTF hashingTF = new HashingTF();
+		HashingTF hashingTF = new HashingTF(10000);
 
-		JavaRDD<List<String>> javaRdd = jdbcDF.javaRDD().map(r -> new ArrayList<String>(Arrays.asList(r.getString(4).trim().split(" "))));
-
+		JavaRDD<List<String>> javaRdd = jdbcDF.javaRDD().map(
+				r -> Arrays.asList(r.getString(4).trim().split(" ")));
 		JavaRDD<Vector> parsedData = hashingTF.transform(javaRdd);
-		JavaPairRDD<Long, Vector> corpus = JavaPairRDD.fromJavaRDD(parsedData.zipWithIndex().map(t -> t.swap()));
+		JavaPairRDD<Long, Vector> corpus = JavaPairRDD.fromJavaRDD(parsedData
+				.zipWithIndex().map(t -> t.swap()));
 
 		corpus.cache();
 
-		DistributedLDAModel ldaModel = new LDA().setK(10).run(corpus);
+		DistributedLDAModel ldaModel = new LDA().setK(3).run(corpus);
 
-		System.out.println("Learned topics (as distributions over vocab of " + ldaModel.vocabSize() + " words):");
+		System.out.println("Learned topics (as distributions over vocab of "
+				+ ldaModel.vocabSize() + " words):");
 		Matrix topics = ldaModel.topicsMatrix();
 		for (int topic = 0; topic < 3; topic++) {
-			System.out.print("Topic " + topic + ":");
+			System.out.println("Topic " + topic + ":");
 			for (int word = 0; word < ldaModel.vocabSize(); word++) {
 				System.out.print(" " + topics.apply(word, topic));
 			}
