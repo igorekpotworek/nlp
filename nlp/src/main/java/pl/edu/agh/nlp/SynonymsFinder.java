@@ -1,4 +1,4 @@
-package nlp;
+package pl.edu.agh.nlp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +17,7 @@ import org.apache.spark.sql.SQLContext;
 
 import scala.Tuple2;
 
-public class Test1 {
+public class SynonymsFinder {
 	public static void main(String[] args) {
 
 		SparkConf sparkConf = new SparkConf().setAppName("Nlp").setMaster(

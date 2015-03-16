@@ -1,4 +1,4 @@
-package nlp;
+package pl.edu.agh.nlp.model;
 
 public class Artykul {
 	private String tytul;
