@@ -1,1 +1,9 @@
-/target/
+*.DS_Store
+bin
+target
+.classpath
+.project
+.settings
+.idea
+*.iml
+
