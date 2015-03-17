@@ -2,7 +2,7 @@ package pl.edu.agh.nlp.spark;
 
 import java.io.Serializable;
 
-import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
@@ -11,8 +11,8 @@ import org.apache.spark.sql.SQLContext;
 public class SparkHdfsTest {
 	public static void main(String[] args) {
 
-		SparkConf conf = new SparkConf().setAppName("Hdfs Test").setMaster("local[1]");
-		JavaSparkContext sc = new JavaSparkContext(conf);
+		SparkContext sparkContext = SparkContextFactory.getSparkContext();
+		JavaSparkContext sc = new JavaSparkContext(sparkContext);
 		SQLContext sqlContext = new SQLContext(sc);
 
 		JavaRDD<Person> people = sc.textFile("hdfs://localhost:19000/femaleNames.txt").map(line -> {
@@ -34,9 +34,7 @@ public class SparkHdfsTest {
 	}
 
 	public static class Person implements Serializable {
-		/**
-		 * 
-		 */
+
 		private static final long serialVersionUID = 1L;
 		private String firstname;
 		private String lastname;
