@@ -14,6 +14,7 @@ import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.rdd.EmptyRDD;
 import org.apache.spark.rdd.JdbcRDD;
+import org.languagetool.tokenizers.pl.PolishWordTokenizer;
 
 import pl.edu.agh.nlp.model.Article;
 import pl.edu.agh.nlp.model.ArticleMapper;
@@ -25,6 +26,7 @@ public class SparkClassification implements Serializable {
 
 	private static final long serialVersionUID = -2451802483479490942L;
 	private final static double[] splitTable = { 0.6, 0.4 };
+	private final static PolishWordTokenizer tokenizer = new PolishWordTokenizer();
 
 	public NaiveBayesModel builidModel(List<String> tableNames) {
 		SparkContext sc = SparkContextFactory.getSparkContext();
@@ -40,7 +42,7 @@ public class SparkClassification implements Serializable {
 			JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(), "select tekst from " + tableName
 					+ " where  ? <= id AND id <= ?", 1, 2000, 10, new ArticleMapper());
 			final int j = i;
-			JavaRDD<LabeledPoint> parsedData = data.map(a -> new LabeledPoint(j, htf.transform(Arrays.asList(a.getText().split(" ")))));
+			JavaRDD<LabeledPoint> parsedData = data.map(a -> new LabeledPoint(j, htf.transform(tokenizer.tokenize(a.getText()))));
 			JavaRDD<LabeledPoint>[] splits = parsedData.randomSplit(splitTable);
 			training = training.union(splits[0]);
 			test = test.union(splits[1]);
@@ -69,6 +71,7 @@ public class SparkClassification implements Serializable {
 	}
 
 	public static void main(String[] args) {
+
 		String[] s = { "ARTYKULY_WIADOMOSCI", "ARTYKULY_SPORT" };
 		List<String> tableNames = Arrays.asList(s);
 
