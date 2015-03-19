@@ -7,4 +7,4 @@ CREATE INDEX ARTYKULY_GIN ON ARTYKULY_WIADOMOSCI USING GIN (WEKTOR);
 CREATE TRIGGER TS_ARTUKULY BEFORE INSERT OR UPDATE ON ARTYKULY_WIADOMOSCI 
 FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger(WEKTOR,'public.polish',tytul, wstep, tekst);
 
-select * from ARTYKULY_WIADOMOSCI where WEKTOR @@ to_tsquery('public.polish', 'KOMOROWSKIemu') limit 1;
+select * from ARTYKULY_WIADOMOSCI where WEKTOR @@ to_tsquery('public.polish', 'moderacji') limit 1;

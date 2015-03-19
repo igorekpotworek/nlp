@@ -1,7 +1,6 @@
 package pl.edu.agh.nlp.spark.algorithms.lda;
 
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaPairRDD;
@@ -10,13 +9,15 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.DistributedLDAModel;
 import org.apache.spark.mllib.clustering.LDA;
 import org.apache.spark.mllib.feature.HashingTF;
+import org.apache.spark.mllib.feature.IDF;
+import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.rdd.JdbcRDD;
-import org.languagetool.tokenizers.pl.PolishWordTokenizer;
 
 import pl.edu.agh.nlp.model.Article;
 import pl.edu.agh.nlp.model.ArticleMapper;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
+import pl.edu.agh.nlp.spark.Tokenizer;
 import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
 import scala.Tuple2;
 
@@ -24,34 +25,41 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 public class SparkLDA {
+	private final static Tokenizer tokenizer = new Tokenizer();
 
-	private final static PolishWordTokenizer tokenizer = new PolishWordTokenizer();
-
-	public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
+	public static void main(String[] args) throws IOException {
 
 		JavaSparkContext jsc = SparkContextFactory.getJavaSparkContext();
 
+		// Wczytanie danych (artykulow) z bazy danych
 		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(),
-				"select tekst from ARTYKULY_WIADOMOSCI where  ? <= id AND id <= ?", 1, 5000, 10, new ArticleMapper());
+				"select tekst from ARTYKULY_WIADOMOSCI where  ? <= id AND id <= ?", 1, 10000, 10, new ArticleMapper());
 
+		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText()));
 
+		// Wy
 		JavaRDD<String> tokens = javaRdd.flatMap(t -> t).distinct();
+		HashingTF hashingTF = new HashingTF(2000000);
 
-		HashingTF hashingTF = new HashingTF((int) tokens.count());
-
-		JavaRDD<Vector> parsedData = hashingTF.transform(javaRdd);
+		JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
 		Multimap<Integer, String> mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
 
-		JavaPairRDD<Long, Vector> corpus = JavaPairRDD.fromJavaRDD(parsedData.zipWithIndex().map(t -> t.swap()));
+		IDFModel idfModel = new IDF().fit(tfData);
+		JavaRDD<Vector> tfidfData = idfModel.transform(tfData);
+
+		JavaPairRDD<Long, Vector> corpus = JavaPairRDD.fromJavaRDD(tfidfData.zipWithIndex().map(t -> t.swap()));
 
 		corpus.cache();
 
-		DistributedLDAModel ldaModel = new LDA().setK(3).run(corpus);
+		// Budowa modelu
+		DistributedLDAModel ldaModel = new LDA().setK(20).run(corpus);
 
-		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(10);
+		// Opisanie topicow za pomoca slow wraz z wagami
+		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(20);
 		TopicsDescriptionWriter.writeToFile(d, mapping);
 
+		// Opisanie dokumentow za pomoca topicow wraz z wagami
 		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
 		TopicsDistributionWriter.writeToFile(td);
 

@@ -40,7 +40,7 @@ public class SparkClassification implements Serializable {
 		int i = 0;
 		for (String tableName : tableNames) {
 			JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(), "select tekst from " + tableName
-					+ " where  ? <= id AND id <= ?", 1, 2000, 10, new ArticleMapper());
+					+ " where  ? <= id AND id <= ?", 1, 10000, 10, new ArticleMapper());
 			final int j = i;
 			JavaRDD<LabeledPoint> parsedData = data.map(a -> new LabeledPoint(j, htf.transform(tokenizer.tokenize(a.getText()))));
 			JavaRDD<LabeledPoint>[] splits = parsedData.randomSplit(splitTable);
