@@ -1,4 +1,4 @@
-package pl.edu.agh.nlp.spark;
+package pl.edu.agh.nlp.spellChecking;
 
 import java.io.IOException;
 import java.util.List;
@@ -7,7 +7,7 @@ import org.languagetool.JLanguageTool;
 import org.languagetool.language.Polish;
 import org.languagetool.rules.RuleMatch;
 
-public class Test1 {
+public class SpellChecking {
 	public static void main(String[] args) throws IOException {
 		JLanguageTool langTool = new JLanguageTool(new Polish());
 		langTool.activateDefaultPatternRules();

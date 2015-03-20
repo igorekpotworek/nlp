@@ -1,22 +1,14 @@
-package pl.edu.agh.nlp.model;
+package pl.edu.agh.nlp.model.entities;
 
 public class Article {
-	private Long id;
 	private String title;
 	private String intro;
 	private String text;
 
 	@Override
 	public String toString() {
-		return "Article [id=" + id + ", title=" + title + ", intro=" + intro + ", text=" + text + "]";
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
+		return "Article [title=" + title + ", intro=" + intro + ", text="
+				+ text + "]";
 	}
 
 	public String getTitle() {

@@ -5,6 +5,8 @@ import java.sql.SQLException;
 
 import org.apache.spark.api.java.function.Function;
 
+import pl.edu.agh.nlp.model.entities.Article;
+
 public class ArticleMapper implements Function<ResultSet, Article> {
 
 	/**
@@ -28,10 +30,7 @@ public class ArticleMapper implements Function<ResultSet, Article> {
 			article.setTitle(resultSet.getString("tytul"));
 		} catch (SQLException e) {
 		}
-		try {
-			article.setId(resultSet.getLong("id"));
-		} catch (SQLException e) {
-		}
+
 		return article;
 	}
 

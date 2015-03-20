@@ -14,11 +14,11 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.rdd.JdbcRDD;
 
-import pl.edu.agh.nlp.model.Article;
 import pl.edu.agh.nlp.model.ArticleMapper;
+import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
-import pl.edu.agh.nlp.spark.Tokenizer;
 import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
+import pl.edu.agh.nlp.spark.utils.Tokenizer;
 import scala.Tuple2;
 
 import com.google.common.collect.Multimap;

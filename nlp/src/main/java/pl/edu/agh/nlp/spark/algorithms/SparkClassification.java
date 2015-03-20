@@ -16,8 +16,8 @@ import org.apache.spark.rdd.EmptyRDD;
 import org.apache.spark.rdd.JdbcRDD;
 import org.languagetool.tokenizers.pl.PolishWordTokenizer;
 
-import pl.edu.agh.nlp.model.Article;
 import pl.edu.agh.nlp.model.ArticleMapper;
+import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
 import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
 import scala.Tuple2;

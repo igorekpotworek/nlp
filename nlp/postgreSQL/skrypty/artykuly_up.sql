@@ -29,3 +29,10 @@ tytul VARCHAR,
 url VARCHAR);
 
 
+CREATE TABLE articles (
+id SERIAL,
+title varchar,
+intro varchar,
+text varchar);
+
+

@@ -9,11 +9,11 @@ import org.apache.spark.mllib.feature.Word2Vec;
 import org.apache.spark.mllib.feature.Word2VecModel;
 import org.apache.spark.rdd.JdbcRDD;
 
-import pl.edu.agh.nlp.model.Article;
 import pl.edu.agh.nlp.model.ArticleMapper;
+import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
-import pl.edu.agh.nlp.spark.Tokenizer;
 import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
+import pl.edu.agh.nlp.spark.utils.Tokenizer;
 import scala.Tuple2;
 
 public class SynonymsFinder {

@@ -1,4 +1,4 @@
-package pl.edu.agh.nlp.spark;
+package pl.edu.agh.nlp.spark.utils;
 
 import java.io.IOException;
 import java.io.Serializable;

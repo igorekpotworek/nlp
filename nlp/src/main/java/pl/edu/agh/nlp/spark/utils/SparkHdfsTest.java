@@ -1,4 +1,4 @@
-package pl.edu.agh.nlp.spark;
+package pl.edu.agh.nlp.spark.utils;
 
 import java.io.Serializable;
 
@@ -7,6 +7,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.SQLContext;
+
+import pl.edu.agh.nlp.spark.SparkContextFactory;
 
 public class SparkHdfsTest {
 	public static void main(String[] args) {
