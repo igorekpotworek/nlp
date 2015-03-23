@@ -9,8 +9,6 @@ public class SparkContextFactory {
 
 	public static SparkContext getSparkContext() {
 		if (sc == null) {
-			// Logger.getLogger("org").setLevel(Level.OFF);
-			// Logger.getLogger("akka").setLevel(Level.OFF);
 			SparkConf conf = new SparkConf().setAppName("NLP").setMaster("local[2]");
 			sc = new SparkContext(conf);
 		}

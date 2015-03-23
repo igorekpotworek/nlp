@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import org.apache.spark.api.java.function.Function;
 
 import pl.edu.agh.nlp.model.entities.Article;
+import pl.edu.agh.nlp.model.entities.Article.Category;
 
 public class ArticleMapper implements Function<ResultSet, Article> {
 
@@ -19,19 +20,27 @@ public class ArticleMapper implements Function<ResultSet, Article> {
 
 		Article article = new Article();
 		try {
-			article.setIntro(resultSet.getString("wstep"));
+			article.setIntro(resultSet.getString("intro"));
 		} catch (SQLException e) {
 		}
 		try {
-			article.setText(resultSet.getString("tekst"));
+			article.setText(resultSet.getString("text"));
 		} catch (SQLException e) {
 		}
 		try {
-			article.setTitle(resultSet.getString("tytul"));
+			article.setTitle(resultSet.getString("title"));
+		} catch (SQLException e) {
+		}
+		try {
+			article.setId(resultSet.getLong("id"));
+		} catch (SQLException e) {
+		}
+
+		try {
+			article.setCategory(Category.valueOf(resultSet.getString("category").toUpperCase()));
 		} catch (SQLException e) {
 		}
 
 		return article;
 	}
-
 }

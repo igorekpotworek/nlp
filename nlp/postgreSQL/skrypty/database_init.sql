@@ -1,12 +1,10 @@
-COPY TMP_WIADOMOSCI FROM 'C:\items_wiadomosci.csv' DELIMITER ',' CSV HEADER;
-COPY TMP_SPORT FROM 'C:\items_SPORT.csv' DELIMITER ',' CSV HEADER;
+COPY TMP_TECH FROM 'C:\items_tech.csv' DELIMITER ',' CSV HEADER;
 
 
-INSERT INTO ARTYKULY_SPORT (tytul, wstep, tekst) 
-	select tytul, wstep, regexp_replace(regexp_replace (tekst, 'Pozostało znaków: 4000 Zaloguj się Twój podpis: zmień swój podpis | wyloguj się ...lub dodaj opinię anonimowo REGULAMIN.*', ''), ' Tagi:.*', '') from TMP_SPORT;
 
-INSERT INTO ARTYKULY_WIADOMOSCI (tytul, wstep, tekst) 
-	select tytul, intro, regexp_replace(regexp_replace (tekst, 'Pozostało znaków: 4000 Zaloguj się Twój podpis: zmień swój podpis | wyloguj się ...lub dodaj opinię anonimowo REGULAMIN.*', ''), ' Tagi:.*', '') from TMP_WIADOMOSCI;
+INSERT INTO articles (title, intro, text, category ) 
+	select tytul, wstep, regexp_replace(regexp_replace (tekst, 'Pozostało znaków: 4000 Zaloguj się Twój podpis: zmień swój podpis | wyloguj się ...lub dodaj opinię anonimowo REGULAMIN.*', ''), ' Tagi:.*', ''), 'tech' from TMP_TECH
+	where url ~ '.*,wiadomosc\.html.*' and (wstep is not null or tekst is not null);
 
 
 

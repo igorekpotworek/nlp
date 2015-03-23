@@ -24,7 +24,7 @@ public class SynonymsFinder {
 		SparkContext sparkContext = SparkContextFactory.getSparkContext();
 		JavaSparkContext jsc = new JavaSparkContext(sparkContext);
 		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(),
-				"select tekst from ARTYKULY_WIADOMOSCI where  ? <= id AND id <= ?", 1, 10000, 10, new ArticleMapper());
+				"select tekst from articles where  ? <= id AND id <= ?", 1, 100000, 10, new ArticleMapper());
 
 		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText()));
 		System.out.println(javaRdd.count());

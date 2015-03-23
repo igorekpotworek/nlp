@@ -6,4 +6,5 @@ target
 .settings
 .idea
 *.iml
+/dane/
 

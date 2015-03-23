@@ -2,6 +2,7 @@ package pl.edu.agh.nlp.model.dao;
 
 import java.util.List;
 
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -23,4 +24,10 @@ public class ArticlesDao extends NamedParameterJdbcDaoSupport {
 		return getNamedParameterJdbcTemplate().query(sql, parameters, new BeanPropertyRowMapper<Article>(Article.class));
 	}
 
+	public Article findById(Long id) {
+		String sql = "select id, title, intro, text from articles where id=:id";
+		SqlParameterSource parameters = new MapSqlParameterSource("id", id);
+		return DataAccessUtils.singleResult(getNamedParameterJdbcTemplate().query(sql, parameters,
+				new BeanPropertyRowMapper<Article>(Article.class)));
+	}
 }

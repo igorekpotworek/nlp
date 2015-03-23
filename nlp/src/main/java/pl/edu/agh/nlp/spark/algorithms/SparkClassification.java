@@ -2,7 +2,6 @@ package pl.edu.agh.nlp.spark.algorithms;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.List;
 
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -12,7 +11,6 @@ import org.apache.spark.mllib.classification.NaiveBayes;
 import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.regression.LabeledPoint;
-import org.apache.spark.rdd.EmptyRDD;
 import org.apache.spark.rdd.JdbcRDD;
 import org.languagetool.tokenizers.pl.PolishWordTokenizer;
 
@@ -28,26 +26,23 @@ public class SparkClassification implements Serializable {
 	private final static double[] splitTable = { 0.6, 0.4 };
 	private final static PolishWordTokenizer tokenizer = new PolishWordTokenizer();
 
-	public NaiveBayesModel builidModel(List<String> tableNames) {
+	public NaiveBayesModel builidModel() {
 		SparkContext sc = SparkContextFactory.getSparkContext();
 		JavaSparkContext jsc = new JavaSparkContext(sc);
 		HashingTF htf = new HashingTF(10000);
 
-		JavaRDD<LabeledPoint> training = new EmptyRDD<LabeledPoint>(sc, scala.reflect.ClassTag$.MODULE$.apply(LabeledPoint.class))
-				.toJavaRDD();
-		JavaRDD<LabeledPoint> test = new EmptyRDD<LabeledPoint>(sc, scala.reflect.ClassTag$.MODULE$.apply(LabeledPoint.class)).toJavaRDD();
+		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(), "select * from articles where  ? <= id AND id <= ?", 1,
+				100000, 10, new ArticleMapper());
 
-		int i = 0;
-		for (String tableName : tableNames) {
-			JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(), "select tekst from " + tableName
-					+ " where  ? <= id AND id <= ?", 1, 10000, 10, new ArticleMapper());
-			final int j = i;
-			JavaRDD<LabeledPoint> parsedData = data.map(a -> new LabeledPoint(j, htf.transform(tokenizer.tokenize(a.getText()))));
-			JavaRDD<LabeledPoint>[] splits = parsedData.randomSplit(splitTable);
-			training = training.union(splits[0]);
-			test = test.union(splits[1]);
-			i++;
-		}
+		data = data.filter(a -> a.getText() != null).filter(a -> a.getCategory() != null);
+
+		JavaRDD<LabeledPoint> parsedData = data.map(a -> new LabeledPoint(a.getCategory().getValue(), htf.transform(tokenizer.tokenize(a
+				.getText()))));
+
+		JavaRDD<LabeledPoint>[] splits = parsedData.randomSplit(splitTable);
+
+		JavaRDD<LabeledPoint> training = splits[0];
+		JavaRDD<LabeledPoint> test = splits[1];
 
 		final NaiveBayesModel model = NaiveBayes.train(training.rdd());
 
@@ -72,11 +67,8 @@ public class SparkClassification implements Serializable {
 
 	public static void main(String[] args) {
 
-		String[] s = { "ARTYKULY_WIADOMOSCI", "ARTYKULY_SPORT" };
-		List<String> tableNames = Arrays.asList(s);
-
 		SparkClassification sparkClassification = new SparkClassification();
-		NaiveBayesModel model = sparkClassification.builidModel(tableNames);
+		NaiveBayesModel model = sparkClassification.builidModel();
 		test(model);
 
 	}
