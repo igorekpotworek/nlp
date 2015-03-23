@@ -39,8 +39,7 @@ public class SparkLDA {
 		data = data.filter(f -> f.getText() != null);
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
-		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText()));
-		javaRdd = javaRdd.filter(a -> !a.isEmpty());
+		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
 
 		JavaRDD<String> tokens = javaRdd.flatMap(t -> t).distinct();
 		HashingTF hashingTF = new HashingTF(2000000);

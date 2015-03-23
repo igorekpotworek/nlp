@@ -1,9 +1,16 @@
 package pl.edu.agh.nlp.model.entities;
 
-public class Article {
+import java.io.Serializable;
 
-	public enum Category {
-		POLITICS(0), TECH(1), SPORT(2), HEALTH(3);
+public class Article implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public enum Category implements Serializable {
+		POLITICS(0), TECH(1), SPORT(2), HEALTH(3), FINANCE(4);
 		private final int value;
 
 		private Category(int value) {

@@ -12,40 +12,67 @@ import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.apache.spark.rdd.JdbcRDD;
-import org.languagetool.tokenizers.pl.PolishWordTokenizer;
 
 import pl.edu.agh.nlp.model.ArticleMapper;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
 import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
+import pl.edu.agh.nlp.spark.utils.Tokenizer;
 import scala.Tuple2;
+
+import com.google.common.collect.Lists;
 
 public class SparkClassification implements Serializable {
 
 	private static final long serialVersionUID = -2451802483479490942L;
 	private final static double[] splitTable = { 0.6, 0.4 };
-	private final static PolishWordTokenizer tokenizer = new PolishWordTokenizer();
+	private final static Tokenizer tokenizer = new Tokenizer();
 
 	public NaiveBayesModel builidModel() {
+		System.setProperty("hadoop.home.dir", "C:\\Programs\\hadoop-common-2.2.0-bin-master");
 		SparkContext sc = SparkContextFactory.getSparkContext();
 		JavaSparkContext jsc = new JavaSparkContext(sc);
-		HashingTF htf = new HashingTF(10000);
 
+		// Wczytujemy artukuly z bazy danych
 		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(), "select * from articles where  ? <= id AND id <= ?", 1,
-				100000, 10, new ArticleMapper());
+				1000000, 10, new ArticleMapper());
 
+		// Filtrujemy tylko te z tekstem i kategoria
 		data = data.filter(a -> a.getText() != null).filter(a -> a.getCategory() != null);
 
-		JavaRDD<LabeledPoint> parsedData = data.map(a -> new LabeledPoint(a.getCategory().getValue(), htf.transform(tokenizer.tokenize(a
-				.getText()))));
+		// Obliczamy dzial o najmniejszej liczbie reprezentantow
+		final Long classSize = data.keyBy(p -> p.getCategory()).countByKey().values().stream().mapToLong(p -> (long) p).min().getAsLong();
 
-		JavaRDD<LabeledPoint>[] splits = parsedData.randomSplit(splitTable);
+		// Wybieramy z artykulow po rowno z kazdej grupy
+		JavaRDD<Article> uniformData = data.groupBy(p -> p.getCategory())
+				.map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue())).flatMap(f -> f);
+
+		// uniformData.saveAsObjectFile("file:///D:/tmp.o");
+		// JavaRDD<Article> uniformData = jsc.objectFile("file:///D:/tmp.o");
+		// uniformData = uniformData.filter(a -> a.getCategory().equals(Category.HEALTH) || a.getCategory().equals(Category.TECH)
+		// || a.getCategory().equals(Category.FINANCE));
+		// System.out.println(uniformData.count());
+
+		// Budowa modelu idf
+		HashingTF hashingTF = new HashingTF(2000000);
+		// JavaRDD<List<String>> javaRdd = uniformData.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
+		// JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
+		// IDFModel idfModel = new IDF().fit(tfData);
+
+		// Zrzutowanie publikacji na wektory
+		JavaRDD<LabeledPoint> labeledPoints = uniformData.map(a -> new LabeledPoint(a.getCategory().getValue(), hashingTF
+				.transform(tokenizer.tokenize(a.getText()))));
+
+		// Dzielimy dane na zbior treningowy oraz testowy
+		JavaRDD<LabeledPoint>[] splits = labeledPoints.randomSplit(splitTable);
 
 		JavaRDD<LabeledPoint> training = splits[0];
 		JavaRDD<LabeledPoint> test = splits[1];
 
+		// Budowa modelu
 		final NaiveBayesModel model = NaiveBayes.train(training.rdd());
 
+		// Ewaluacja modelu
 		JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p.features()), p
 				.label()));
 		long accuracy = predictionAndLabel.filter(pl -> {
@@ -54,6 +81,7 @@ public class SparkClassification implements Serializable {
 
 		System.out.println("Skutecznosc: " + accuracy / (double) test.count());
 		return model;
+
 	}
 
 	public static void test(NaiveBayesModel model) {
@@ -69,7 +97,7 @@ public class SparkClassification implements Serializable {
 
 		SparkClassification sparkClassification = new SparkClassification();
 		NaiveBayesModel model = sparkClassification.builidModel();
-		test(model);
+		// test(model);
 
 	}
 }
