@@ -3,7 +3,10 @@ package pl.edu.agh.nlp.spark.algorithms.lda;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
+import pl.edu.agh.nlp.model.entities.TopicWord;
 import scala.Tuple2;
 
 import com.google.common.collect.Multimap;
@@ -20,5 +23,16 @@ public class TopicsDescriptionWriter {
 			writer.println();
 		}
 		writer.close();
+	}
+
+	public static void convertToTopicWord(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) {
+
+		List<TopicWord> topicWords = new ArrayList<TopicWord>();
+		for (int i = 0; i < d.length; i++) {
+			for (int j = 0; j < d[i]._1.length; j++) {
+				for (String word : mapping.get(d[i]._1[j]))
+					topicWords.add(new TopicWord(i, word, d[i]._2[j]));
+			}
+		}
 	}
 }

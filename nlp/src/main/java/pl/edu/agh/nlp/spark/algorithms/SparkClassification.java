@@ -28,6 +28,8 @@ public class SparkClassification implements Serializable {
 	private final static double[] splitTable = { 0.6, 0.4 };
 	private final static Tokenizer tokenizer = new Tokenizer();
 
+	private static final HashingTF hashingTF = new HashingTF(2000000);
+
 	public NaiveBayesModel builidModel() {
 		System.setProperty("hadoop.home.dir", "C:\\Programs\\hadoop-common-2.2.0-bin-master");
 		SparkContext sc = SparkContextFactory.getSparkContext();
@@ -38,30 +40,30 @@ public class SparkClassification implements Serializable {
 				1000000, 10, new ArticleMapper());
 
 		// Filtrujemy tylko te z tekstem i kategoria
-		data = data.filter(a -> a.getText() != null).filter(a -> a.getCategory() != null);
+		data = data.filter(a -> (a.getText() != null && !a.getText().isEmpty()) || (a.getIntro() != null && !a.getIntro().isEmpty()))
+				.filter(a -> a.getCategory() != null);
 
 		// Obliczamy dzial o najmniejszej liczbie reprezentantow
 		final Long classSize = data.keyBy(p -> p.getCategory()).countByKey().values().stream().mapToLong(p -> (long) p).min().getAsLong();
 
 		// Wybieramy z artykulow po rowno z kazdej grupy
-		JavaRDD<Article> uniformData = data.groupBy(p -> p.getCategory())
-				.map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue())).flatMap(f -> f);
+		data = data.groupBy(p -> p.getCategory()).map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue())).flatMap(f -> f);
 
-		// uniformData.saveAsObjectFile("file:///D:/tmp.o");
-		// JavaRDD<Article> uniformData = jsc.objectFile("file:///D:/tmp.o");
-		// uniformData = uniformData.filter(a -> a.getCategory().equals(Category.HEALTH) || a.getCategory().equals(Category.TECH)
-		// || a.getCategory().equals(Category.FINANCE));
+		data.saveAsObjectFile("file:///D:/tmp.o");
+		// JavaRDD<Article> data = jsc.objectFile("file:///D:/tmp.o");
+		System.out.println(data.count());
+
 		// System.out.println(uniformData.count());
 
 		// Budowa modelu idf
-		HashingTF hashingTF = new HashingTF(2000000);
+
 		// JavaRDD<List<String>> javaRdd = uniformData.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
 		// JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
 		// IDFModel idfModel = new IDF().fit(tfData);
 
 		// Zrzutowanie publikacji na wektory
-		JavaRDD<LabeledPoint> labeledPoints = uniformData.map(a -> new LabeledPoint(a.getCategory().getValue(), hashingTF
-				.transform(tokenizer.tokenize(a.getText()))));
+		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(), hashingTF.transform(tokenizer
+				.tokenize(a.getText()))));
 
 		// Dzielimy dane na zbior treningowy oraz testowy
 		JavaRDD<LabeledPoint>[] splits = labeledPoints.randomSplit(splitTable);

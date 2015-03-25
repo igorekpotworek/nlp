@@ -46,6 +46,6 @@ intro varchar,
 text varchar,
 category varchar);
 
-CREATE INDEX ON articles (category);
+CREATE INDEX articles_category_index ON articles (category);
 
 

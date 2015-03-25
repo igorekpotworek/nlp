@@ -2,8 +2,14 @@ package pl.edu.agh.nlp.model.entities;
 
 public class TopicArticle {
 	private Long articleId;
-	private Long topicId;
+	private Integer topicId;
 	private Double weight;
+
+	public TopicArticle(Long articleId, Integer topicId, Double weight) {
+		this.articleId = articleId;
+		this.topicId = topicId;
+		this.weight = weight;
+	}
 
 	public Long getArticleId() {
 		return articleId;
@@ -13,11 +19,11 @@ public class TopicArticle {
 		this.articleId = articleId;
 	}
 
-	public Long getTopicId() {
+	public Integer getTopicId() {
 		return topicId;
 	}
 
-	public void setTopicId(Long topicId) {
+	public void setTopicId(Integer topicId) {
 		this.topicId = topicId;
 	}
 

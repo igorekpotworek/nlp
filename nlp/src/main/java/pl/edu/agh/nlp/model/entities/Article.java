@@ -10,7 +10,7 @@ public class Article implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public enum Category implements Serializable {
-		POLITICS(0), TECH(1), SPORT(2), HEALTH(3), FINANCE(4);
+		POLITICS(0), TECH(1), SPORT(2), HEALTH(3);
 		private final int value;
 
 		private Category(int value) {

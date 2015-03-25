@@ -30,7 +30,7 @@ import com.google.common.collect.Multimaps;
 public class SparkLDA {
 	private final static Tokenizer tokenizer = new Tokenizer();
 
-	public void getModel() throws IOException {
+	public DistributedLDAModel bulidModel() throws IOException {
 		JavaSparkContext jsc = SparkContextFactory.getJavaSparkContext();
 
 		// Wczytanie danych (artykulow) z bazy danych
@@ -41,20 +41,25 @@ public class SparkLDA {
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
 
-		JavaRDD<String> tokens = javaRdd.flatMap(t -> t).distinct();
+		// Budowa modelu TF
 		HashingTF hashingTF = new HashingTF(2000000);
-
 		JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
+
+		// Mapowanie wektorow TF na s³owa
+		JavaRDD<String> tokens = javaRdd.flatMap(t -> t).distinct();
 		Multimap<Integer, String> mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
 
+		// Budowa modelu IDF
 		IDFModel idfModel = new IDF().fit(tfData);
 		JavaRDD<Vector> tfidfData = idfModel.transform(tfData);
 
+		// Przygotowanie korpusu
 		JavaPairRDD<Long, Vector> corpus = JavaPairRDD.fromJavaRDD(tfidfData.zipWithIndex().map(t -> t.swap()));
 
 		// Budowa modelu
 		DistributedLDAModel ldaModel = new LDA().setK(20).run(corpus);
 
+		// Serializacja modelu
 		ModelFilesManager modelFilesManager = new ModelFilesManager();
 		modelFilesManager.saveModel(ldaModel.toLocal(), "lda_model.o");
 
@@ -65,6 +70,7 @@ public class SparkLDA {
 		// Opisanie dokumentow za pomoca topicow wraz z wagami
 		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
 		TopicsDistributionWriter.writeToFile(td);
+		return ldaModel;
 
 	}
 }

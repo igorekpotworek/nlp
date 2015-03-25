@@ -1,7 +1,10 @@
 package pl.edu.agh.nlp.model.dao;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
@@ -15,4 +18,9 @@ public class TopicArticleDao extends NamedParameterJdbcDaoSupport {
 		getNamedParameterJdbcTemplate().batchUpdate(sql, params);
 	}
 
+	public List<TopicArticle> findById(Long articleId) {
+		String sql = "select topicId, articleId, weight from  values topics_articles where articleId=:articleId";
+		Map<String, Object> parameters = Collections.singletonMap("topicId", articleId);
+		return getNamedParameterJdbcTemplate().query(sql, parameters, new BeanPropertyRowMapper<TopicArticle>(TopicArticle.class));
+	}
 }

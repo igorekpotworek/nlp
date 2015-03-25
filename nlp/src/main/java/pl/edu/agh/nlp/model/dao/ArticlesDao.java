@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 
 import pl.edu.agh.nlp.model.entities.Article;
 
@@ -29,5 +30,16 @@ public class ArticlesDao extends NamedParameterJdbcDaoSupport {
 		SqlParameterSource parameters = new MapSqlParameterSource("id", id);
 		return DataAccessUtils.singleResult(getNamedParameterJdbcTemplate().query(sql, parameters,
 				new BeanPropertyRowMapper<Article>(Article.class)));
+	}
+
+	public List<Article> findAll() {
+		String sql = "select id, title, intro, text from articles";
+		return getJdbcTemplate().query(sql, new BeanPropertyRowMapper<Article>(Article.class));
+	}
+
+	public void updateBatch(List<Article> articles) {
+		String sql = "update articles set text=:text, intro=intro where id=:id";
+		SqlParameterSource[] params = SqlParameterSourceUtils.createBatch(articles.toArray());
+		getNamedParameterJdbcTemplate().batchUpdate(sql, params);
 	}
 }
