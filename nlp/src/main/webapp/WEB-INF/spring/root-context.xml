@@ -21,6 +21,19 @@
 	<bean id="articlesDao" class="pl.edu.agh.nlp.model.dao.ArticlesDao">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
+	
+	<bean id="topicsWordsDao" class="pl.edu.agh.nlp.model.dao.TopicsWordsDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="topicsDao" class="pl.edu.agh.nlp.model.dao.TopicsDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.dao.TopicArticleDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
 	<context:property-placeholder location="classpath:jdbc.properties" />
 		
 </beans>

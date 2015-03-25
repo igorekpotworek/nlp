@@ -23,4 +23,9 @@ public class SearchController {
 	public List<Article> search(@RequestParam(value = "query") String sentence) {
 		return articlesDao.searchArticles(sentence);
 	}
+
+	@RequestMapping(value = "/find")
+	public Article findById(@RequestParam(value = "articleId") Long id) {
+		return articlesDao.findById(id);
+	}
 }

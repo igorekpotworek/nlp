@@ -12,7 +12,8 @@ import pl.edu.agh.nlp.model.entities.TopicArticle;
 import scala.Tuple2;
 
 public class TopicsDistributionWriter {
-	public static void writeToFile(List<Tuple2<Object, Vector>> td) throws FileNotFoundException, UnsupportedEncodingException {
+	public static void writeToFile(List<Tuple2<Object, Vector>> td) throws FileNotFoundException,
+			UnsupportedEncodingException {
 		PrintWriter writer = new PrintWriter("TOPICS_DISTRIBUTION.txt", "UTF-8");
 		for (Tuple2<Object, Vector> tuple : td) {
 			writer.print("Id dokumentu: " + tuple._1());
@@ -26,6 +27,7 @@ public class TopicsDistributionWriter {
 		writer.close();
 	}
 
+	// TODO to nie sa id artykulow
 	public void convertToTopicArticle(List<Tuple2<Object, Vector>> td) {
 		List<TopicArticle> topicArticles = new ArrayList<TopicArticle>();
 		for (Tuple2<Object, Vector> tuple : td) {

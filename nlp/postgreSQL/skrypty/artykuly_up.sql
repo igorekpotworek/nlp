@@ -46,6 +46,14 @@ intro varchar,
 text varchar,
 category varchar);
 
+create table topics (
+id integer);
+
+create table topics_words (
+topicId integer,
+word varchar,
+weight double precision);
+
 CREATE INDEX articles_category_index ON articles (category);
 
 

@@ -9,7 +9,7 @@ INSERT INTO articles (title, intro, text, category )
 
 INSERT INTO articles (title, intro, text, category ) 
 	select tytul, intro, tekst, 'POLITICS' from TMP_POLITICS
-	where url ~ '.*,wiadomosc\.html.*' and (intro is not null and into!='') or (tekst is not null and tekst!='');
+	where url ~ '.*,wiadomosc\.html.*' and (intro is not null and intro!='') or (tekst is not null and tekst!='');
 	
 INSERT INTO articles (title, intro, text, category ) 
 	select tytul, wstep, tekst, 'HEALTH' from TMP_HEALTH

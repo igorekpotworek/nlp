@@ -12,8 +12,8 @@ import scala.Tuple2;
 import com.google.common.collect.Multimap;
 
 public class TopicsDescriptionWriter {
-	public static void writeToFile(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) throws FileNotFoundException,
-			UnsupportedEncodingException {
+	public static void writeToFile(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping)
+			throws FileNotFoundException, UnsupportedEncodingException {
 
 		PrintWriter writer = new PrintWriter("TOPICS_DESCRIPTION.txt", "UTF-8");
 		for (int i = 0; i < d.length; i++) {
@@ -25,7 +25,7 @@ public class TopicsDescriptionWriter {
 		writer.close();
 	}
 
-	public static void convertToTopicWord(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) {
+	public static List<TopicWord> convertToTopicWord(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) {
 
 		List<TopicWord> topicWords = new ArrayList<TopicWord>();
 		for (int i = 0; i < d.length; i++) {
@@ -34,5 +34,6 @@ public class TopicsDescriptionWriter {
 					topicWords.add(new TopicWord(i, word, d[i]._2[j]));
 			}
 		}
+		return topicWords;
 	}
 }

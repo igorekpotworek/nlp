@@ -2,6 +2,7 @@ package pl.edu.agh.nlp.spark.algorithms;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -10,17 +11,16 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.classification.NaiveBayes;
 import org.apache.spark.mllib.classification.NaiveBayesModel;
 import org.apache.spark.mllib.feature.HashingTF;
+import org.apache.spark.mllib.feature.IDF;
+import org.apache.spark.mllib.feature.IDFModel;
+import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.regression.LabeledPoint;
-import org.apache.spark.rdd.JdbcRDD;
 
-import pl.edu.agh.nlp.model.ArticleMapper;
+import pl.edu.agh.nlp.DataCleaner;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
-import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
 import pl.edu.agh.nlp.spark.utils.Tokenizer;
 import scala.Tuple2;
-
-import com.google.common.collect.Lists;
 
 public class SparkClassification implements Serializable {
 
@@ -35,35 +35,36 @@ public class SparkClassification implements Serializable {
 		SparkContext sc = SparkContextFactory.getSparkContext();
 		JavaSparkContext jsc = new JavaSparkContext(sc);
 
-		// Wczytujemy artukuly z bazy danych
-		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(), "select * from articles where  ? <= id AND id <= ?", 1,
-				1000000, 10, new ArticleMapper());
-
-		// Filtrujemy tylko te z tekstem i kategoria
-		data = data.filter(a -> (a.getText() != null && !a.getText().isEmpty()) || (a.getIntro() != null && !a.getIntro().isEmpty()))
-				.filter(a -> a.getCategory() != null);
-
-		// Obliczamy dzial o najmniejszej liczbie reprezentantow
-		final Long classSize = data.keyBy(p -> p.getCategory()).countByKey().values().stream().mapToLong(p -> (long) p).min().getAsLong();
-
-		// Wybieramy z artykulow po rowno z kazdej grupy
-		data = data.groupBy(p -> p.getCategory()).map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue())).flatMap(f -> f);
-
-		data.saveAsObjectFile("file:///D:/tmp.o");
-		// JavaRDD<Article> data = jsc.objectFile("file:///D:/tmp.o");
+		// // Wczytujemy artukuly z bazy danych
+		// JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(),
+		// "select * from articles where  ? <= id AND id <= ?", 1, 1000000, 2, new ArticleMapper());
+		//
+		// // Filtrujemy tylko te z tekstem i kategoria
+		// data = data.filter(a -> a.getText() != null && !a.getText().isEmpty()).filter(a -> a.getCategory() != null);
+		//
+		// // Obliczamy dzial o najmniejszej liczbie reprezentantow
+		// final Long classSize = data.keyBy(p -> p.getCategory()).countByKey().values().stream().mapToLong(p -> (long) p)
+		// .min().getAsLong();
+		//
+		// // Wybieramy z artykulow po rowno z kazdej grupy
+		// data = data.groupBy(p -> p.getCategory()).map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue()))
+		// .flatMap(f -> f);
+		//
+		// data.saveAsObjectFile("file:///D:/models/tmp.o");
+		JavaRDD<Article> data = jsc.objectFile("file:///D:/models/tmp.o");
 		System.out.println(data.count());
 
 		// System.out.println(uniformData.count());
 
 		// Budowa modelu idf
 
-		// JavaRDD<List<String>> javaRdd = uniformData.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
-		// JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
-		// IDFModel idfModel = new IDF().fit(tfData);
+		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
+		JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
+		IDFModel idfModel = new IDF().fit(tfData);
 
 		// Zrzutowanie publikacji na wektory
-		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(), hashingTF.transform(tokenizer
-				.tokenize(a.getText()))));
+		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(), idfModel
+				.transform(hashingTF.transform(tokenizer.tokenize(DataCleaner.clean(a.getText()))))));
 
 		// Dzielimy dane na zbior treningowy oraz testowy
 		JavaRDD<LabeledPoint>[] splits = labeledPoints.randomSplit(splitTable);
@@ -75,8 +76,8 @@ public class SparkClassification implements Serializable {
 		final NaiveBayesModel model = NaiveBayes.train(training.rdd());
 
 		// Ewaluacja modelu
-		JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p.features()), p
-				.label()));
+		JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p
+				.features()), p.label()));
 		long accuracy = predictionAndLabel.filter(pl -> {
 			return pl._1().equals(pl._2());
 		}).count();

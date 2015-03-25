@@ -18,7 +18,7 @@ public class TopicArticleDao extends NamedParameterJdbcDaoSupport {
 		getNamedParameterJdbcTemplate().batchUpdate(sql, params);
 	}
 
-	public List<TopicArticle> findById(Long articleId) {
+	public List<TopicArticle> findByTopicsByArticleId(Long articleId) {
 		String sql = "select topicId, articleId, weight from  values topics_articles where articleId=:articleId";
 		Map<String, Object> parameters = Collections.singletonMap("topicId", articleId);
 		return getNamedParameterJdbcTemplate().query(sql, parameters, new BeanPropertyRowMapper<TopicArticle>(TopicArticle.class));
