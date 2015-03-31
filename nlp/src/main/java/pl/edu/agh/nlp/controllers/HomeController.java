@@ -1,4 +1,4 @@
-package pl.edu.agh.nlp;
+package pl.edu.agh.nlp.controllers;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

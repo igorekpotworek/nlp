@@ -1,7 +1,7 @@
 COPY TMP_TECH FROM 'D:\items_tech.csv' DELIMITER ',' CSV HEADER;
 COPY TMP_POLITICS FROM 'D:\items_politics.csv' DELIMITER ',' CSV HEADER;
 COPY TMP_HEALTH FROM 'D:\items_health.csv' DELIMITER ',' CSV HEADER;
-
+#Moto pomijamy
 
 INSERT INTO articles (title, intro, text, category ) 
 	select tytul, wstep, tekst, 'TECH' from TMP_TECH

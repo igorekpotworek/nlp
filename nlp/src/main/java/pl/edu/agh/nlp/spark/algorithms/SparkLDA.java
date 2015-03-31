@@ -16,7 +16,6 @@ import org.apache.spark.rdd.JdbcRDD;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import pl.edu.agh.nlp.DataCleaner;
 import pl.edu.agh.nlp.model.ArticleMapper;
 import pl.edu.agh.nlp.model.dao.TopicsWordsDao;
 import pl.edu.agh.nlp.model.entities.Article;
@@ -26,6 +25,7 @@ import pl.edu.agh.nlp.spark.algorithms.lda.TopicsDescriptionWriter;
 import pl.edu.agh.nlp.spark.algorithms.lda.TopicsDistributionWriter;
 import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
 import pl.edu.agh.nlp.spark.utils.Tokenizer;
+import pl.edu.agh.nlp.utils.DataCleaner;
 import scala.Tuple2;
 
 import com.google.common.collect.Multimap;

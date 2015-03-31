@@ -1,4 +1,4 @@
-package pl.edu.agh.nlp;
+package pl.edu.agh.nlp.controllers;
 
 import java.util.List;
 

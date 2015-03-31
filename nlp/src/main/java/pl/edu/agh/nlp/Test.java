@@ -14,5 +14,6 @@ public class Test {
 		Normalizer n = new Normalizer();
 		System.out.println(BLAS.dot(n.transform(v1), n.transform(v2)));
 		System.out.println(Collections.singletonMap("asdasf", "safa"));
+
 	}
 }

@@ -16,10 +16,10 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.regression.LabeledPoint;
 
-import pl.edu.agh.nlp.DataCleaner;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
 import pl.edu.agh.nlp.spark.utils.Tokenizer;
+import pl.edu.agh.nlp.utils.DataCleaner;
 import scala.Tuple2;
 
 public class SparkClassification implements Serializable {

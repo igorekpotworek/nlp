@@ -222,6 +222,24 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+	<groupId>org.carrot2</groupId>
+	<artifactId>morfologik-stemming</artifactId>
+	<version>1.10.0</version>
+</dependency>
+
+<dependency>
+	<groupId>org.carrot2</groupId>
+	<artifactId>morfologik-polish</artifactId>
+	<version>1.10.0</version>
+</dependency>
+<dependency>
+	<groupId>org.apache.lucene</groupId>
+	<artifactId>lucene-analyzers-morfologik</artifactId>
+	<version>4.10.1</version>
+</dependency>
+
+
 	</dependencies>
 	<build>
 		<plugins>
