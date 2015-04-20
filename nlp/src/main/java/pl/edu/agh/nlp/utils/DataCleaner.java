@@ -51,4 +51,9 @@ public class DataCleaner {
 		logger.info("Data saved");
 	}
 
+	public static void main(String[] args) {
+		logger.info("Data saved");
+
+	}
+
 }
