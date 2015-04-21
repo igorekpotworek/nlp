@@ -38,7 +38,7 @@ public class ArticlesDao extends NamedParameterJdbcDaoSupport {
 	}
 
 	public void updateBatch(List<Article> articles) {
-		String sql = "update articles set text=:text, intro=intro where id=:id";
+		String sql = "update articles set text=:text, intro=:intro where id=:id";
 		SqlParameterSource[] params = SqlParameterSourceUtils.createBatch(articles.toArray());
 		getNamedParameterJdbcTemplate().batchUpdate(sql, params);
 	}

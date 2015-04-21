@@ -25,6 +25,9 @@ INSERT INTO articles (title, intro, text, category )
 INSERT INTO articles (title, intro, text, category ) 
 	select tytul, wstep, tekst, 'SPORT' from TMP_SPORT
 	where url ~ '.*,wiadomosc\.html.*' and (wstep is not null and wstep!='') or (tekst is not null and tekst!='');
+
+ delete from articles where text~'Programy do pobrania:';
+
 	
 UPDATE articles SET text=regexp_replace (text, ' Tagi:.*', '');
 UPDATE articles SET text=regexp_replace (text, 'Pozostało znaków: 4000 Zaloguj się Twój podpis: zmień swój podpis | wyloguj się ...lub dodaj opinię anonimowo REGULAMIN.*', '');

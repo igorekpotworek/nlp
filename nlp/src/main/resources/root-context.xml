@@ -10,6 +10,8 @@
 	<!-- Root Context: defines shared resources visible to all other web components -->
 	<context:component-scan base-package="pl.edu.agh.nlp" />
 
+
+
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
 		<property name="driverClassName" value="${jdbc.driverClassName}"/>
@@ -17,7 +19,7 @@
 		<property name="username" value="${jdbc.username}" />
 		<property name="password" value="${jdbc.password}" />
 	</bean>
-
+	
 	<bean id="articlesDao" class="pl.edu.agh.nlp.model.dao.ArticlesDao">
 		<property name="dataSource" ref="dataSource" />
 	</bean>

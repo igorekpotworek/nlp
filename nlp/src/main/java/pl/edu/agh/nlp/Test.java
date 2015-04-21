@@ -1,19 +1,16 @@
 package pl.edu.agh.nlp;
 
-import java.util.Collections;
+import java.util.regex.Pattern;
 
-import org.apache.spark.mllib.feature.Normalizer;
-import org.apache.spark.mllib.linalg.BLAS;
-import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.mllib.linalg.Vectors;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Test {
-	public static void main(String[] args) {
-		Vector v1 = Vectors.dense(1.0, 0.0, 3.0);
-		Vector v2 = Vectors.dense(1.0, 0.0, 5.0);
-		Normalizer n = new Normalizer();
-		System.out.println(BLAS.dot(n.transform(v1), n.transform(v2)));
-		System.out.println(Collections.singletonMap("asdasf", "safa"));
+	static ApplicationContext context = new ClassPathXmlApplicationContext("root-context.xml");
 
+	public static void main(String[] args) {
+
+		System.out.println(Pattern.compile("\\‹ poprzednia .* nastêpna \\›", Pattern.DOTALL).matcher("‹ poprzednia 1 2 3 nastêpna ›")
+				.replaceAll(""));
 	}
 }
