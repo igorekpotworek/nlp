@@ -6,18 +6,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import pl.edu.agh.nlp.model.dao.ArticlesDao;
-import pl.edu.agh.nlp.model.entities.Article;
+import pl.edu.agh.nlp.model.dao.UsersDao;
+import pl.edu.agh.nlp.model.entities.User;
 
 @RestController
-public class ArticlesMaintanceController {
-
+public class UsersMaintanceController {
 	@Autowired
-	private ArticlesDao articlesDao;
+	private UsersDao usersDao;
 
-	@RequestMapping(value = "/add/article", method = RequestMethod.POST)
-	public void addArticle(@RequestBody Article article) {
-		articlesDao.insert(article);
+	@RequestMapping(value = "/add/user", method = RequestMethod.POST)
+	public void addArticle(@RequestBody User user) {
+		usersDao.insert(user);
 	}
-
 }

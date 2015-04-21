@@ -13,9 +13,6 @@ import pl.edu.agh.nlp.model.entities.Article;
 @RestController
 public class SearchController {
 
-	// private static final Logger logger = LoggerFactory
-	// .getLogger(HomeController.class);
-
 	@Autowired
 	private ArticlesDao articlesDao;
 

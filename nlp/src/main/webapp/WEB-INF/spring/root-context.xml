@@ -34,6 +34,10 @@
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
+	<bean id="usersDao" class="pl.edu.agh.nlp.model.dao.UsersDao">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
 	<context:property-placeholder location="classpath:jdbc.properties" />
 		
 </beans>

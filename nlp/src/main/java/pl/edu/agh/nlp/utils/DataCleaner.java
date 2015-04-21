@@ -1,4 +1,4 @@
-package pl.edu.agh.nlp.utils;
+ï»¿package pl.edu.agh.nlp.utils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,14 +24,14 @@ public class DataCleaner {
 
 	private static final Logger logger = Logger.getLogger(DataCleaner.class);
 
-	private static final Pattern regex1 = Pattern.compile("Pozosta³o znaków: 4000 Zaloguj siê Twój podpis.*", Pattern.DOTALL);
+	private static final Pattern regex1 = Pattern.compile("PozostaÅ‚o znakÃ³w.*", Pattern.DOTALL);
 	private static final Pattern regex2 = Pattern.compile("Tagi\\:.*", Pattern.DOTALL);
 	private static final Pattern regex3 = Pattern.compile("\\(fot.*\\)");
 	private static final Pattern regex4 = Pattern.compile("Polub WP Sport na Facebooku.*", Pattern.DOTALL);
 	private static final Pattern regex5 = Pattern.compile("\\| dodane \\d\\d\\d\\d-\\d\\d-\\d\\d .* temu");
-	private static final Pattern regex6 = Pattern.compile("\\‹ poprzednia .* nastêpna \\›.*", Pattern.DOTALL);
+	private static final Pattern regex6 = Pattern.compile("\\â€¹ poprzednia .* nastÄ™pna \\â€º.*", Pattern.DOTALL);
 	private static final Pattern regex7 = Pattern.compile("Polecamy na Fakt.*", Pattern.DOTALL);
-	private static final Pattern regex8 = Pattern.compile("Opracowa³\\: .*", Pattern.DOTALL);
+	private static final Pattern regex8 = Pattern.compile("OpracowaÅ‚\\: .*", Pattern.DOTALL);
 
 	private static final Pattern[] patterns = { regex1, regex2, regex3, regex4, regex5, regex6, regex7, regex8 };
 
