@@ -268,7 +268,7 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-					<encoding>Cp1252</encoding>
+					<encoding>UTF-8</encoding>
 					<compilerArgument>-Xlint:all</compilerArgument>
 					<showWarnings>true</showWarnings>
 					<showDeprecation>true</showDeprecation>

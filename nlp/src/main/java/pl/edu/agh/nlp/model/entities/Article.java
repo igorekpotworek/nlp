@@ -1,6 +1,8 @@
 package pl.edu.agh.nlp.model.entities;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Article implements Serializable {
 
@@ -12,6 +14,7 @@ public class Article implements Serializable {
 	public enum Category implements Serializable {
 		POLITICS(0), TECH(1), SPORT(2), HEALTH(3);
 		private final int value;
+		private static final Map<Integer, Category> intToTypeMap = new HashMap<Integer, Category>();
 
 		private Category(int value) {
 			this.value = value;
@@ -19,6 +22,17 @@ public class Article implements Serializable {
 
 		public int getValue() {
 			return value;
+		}
+
+		static {
+			for (Category type : Category.values()) {
+				intToTypeMap.put(type.value, type);
+			}
+		}
+
+		public static Category fromInt(int i) {
+			Category type = intToTypeMap.get(Integer.valueOf(i));
+			return type;
 		}
 
 	}

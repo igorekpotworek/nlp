@@ -11,12 +11,10 @@ public class SpellChecking {
 	public static void main(String[] args) throws IOException {
 		JLanguageTool langTool = new JLanguageTool(new Polish());
 		langTool.activateDefaultPatternRules();
-		List<RuleMatch> matches = langTool
-				.check("Janowicz do Irvingu przyby³ wprost z Indian Wells, gdzie przegra³ w I rundzie turnieju ATP Masters 1000 z Diego Schwartzmanem. £odzianin mecz z Rogerem-Vasselinem, którego w przesz³oœci pokonywa³ cztery razy, w tym trzykrotnie w g³ównym cyklu, rozpocz¹³ bardzo s³abo - dwukrotnie zosta³ prze³amany i przegrywa³ 2:5.");
+		List<RuleMatch> matches = langTool.check("");
 
 		for (RuleMatch match : matches) {
-			System.out.println("Potential error at line " + match.getLine() + ", column " + match.getColumn() + ": "
-					+ match.getMessage());
+			System.out.println("Potential error at line " + match.getLine() + ", column " + match.getColumn() + ": " + match.getMessage());
 			System.out.println("Suggested correction: " + match.getSuggestedReplacements());
 		}
 	}

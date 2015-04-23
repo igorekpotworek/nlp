@@ -1,5 +1,7 @@
 package pl.edu.agh.nlp.model.dao;
 
-public class UsersArticlesDao {
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+
+public class UsersArticlesDao extends NamedParameterJdbcDaoSupport {
 
 }

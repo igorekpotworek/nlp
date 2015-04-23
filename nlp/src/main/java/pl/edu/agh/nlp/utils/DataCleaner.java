@@ -1,4 +1,4 @@
-﻿package pl.edu.agh.nlp.utils;
+package pl.edu.agh.nlp.utils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +18,6 @@ import pl.edu.agh.nlp.model.entities.Article;
 
 @Service
 public class DataCleaner {
-
 	@Autowired
 	private ArticlesDao articlesDao;
 
@@ -76,4 +75,5 @@ public class DataCleaner {
 		String s = new String(Files.readAllBytes(Paths.get("test.txt")), StandardCharsets.UTF_8);
 		System.out.println(clean(s));
 	}
+
 }

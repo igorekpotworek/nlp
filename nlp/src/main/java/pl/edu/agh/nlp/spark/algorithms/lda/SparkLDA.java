@@ -1,60 +1,57 @@
-package pl.edu.agh.nlp.spark.algorithms;
+package pl.edu.agh.nlp.spark.algorithms.lda;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.DistributedLDAModel;
 import org.apache.spark.mllib.clustering.LDA;
 import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.feature.IDF;
 import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.rdd.JdbcRDD;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import pl.edu.agh.nlp.model.ArticleMapper;
-import pl.edu.agh.nlp.model.dao.TopicsWordsDao;
 import pl.edu.agh.nlp.model.entities.Article;
-import pl.edu.agh.nlp.spark.ModelFilesManager;
-import pl.edu.agh.nlp.spark.SparkContextFactory;
-import pl.edu.agh.nlp.spark.algorithms.lda.TopicsDescriptionWriter;
-import pl.edu.agh.nlp.spark.algorithms.lda.TopicsDistributionWriter;
-import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
-import pl.edu.agh.nlp.spark.utils.Tokenizer;
-import pl.edu.agh.nlp.utils.DataCleaner;
+import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
+import pl.edu.agh.nlp.utils.Tokenizer;
 import scala.Tuple2;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
-public class SparkLDA {
+public class SparkLDA implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2830677796836853217L;
+
 	private static ApplicationContext context = new ClassPathXmlApplicationContext("root-context.xml");
 	private static final String MODEL_PATH = "models/recomender/model.o";
+	private static final Logger logger = Logger.getLogger(SparkLDA.class);
 
 	private final static Tokenizer tokenizer = new Tokenizer();
+	private DistributedLDAModel ldaModel;
 
-	public DistributedLDAModel bulidModel() throws IOException {
-		JavaSparkContext jsc = SparkContextFactory.getJavaSparkContext();
-
+	public void bulidModel() throws IOException {
 		// Wczytanie danych (artykulow) z bazy danych
-		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(),
-				"select * from articles where  ? <= id AND id <= ?", 1, 1000, 2, new ArticleMapper());
+		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
+
 		data = data.filter(f -> f.getText() != null);
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
-				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(DataCleaner.clean(r.getText()))))
-				.filter(a -> !a._2.isEmpty()));
+				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
 
 		// Budowa modelu TF
 		HashingTF hashingTF = new HashingTF(2000000);
 		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
 
-		// Mapowanie wektorow TF na s≥owa
+		// Mapowanie wektorow TF na s≈Çowa
 		JavaRDD<String> tokens = javaRdd.values().flatMap(t -> t).distinct();
 		Multimap<Integer, String> mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
 
@@ -65,21 +62,24 @@ public class SparkLDA {
 		// Budowa modelu
 
 		// TODO dodac min freq
-		DistributedLDAModel ldaModel = new LDA().setK(20).run(tfidfData);
+		ldaModel = new LDA().setK(100).run(tfidfData);
 
 		// Serializacja modelu
-		ModelFilesManager modelFilesManager = new ModelFilesManager();
-		modelFilesManager.saveModel(ldaModel.toLocal(), "D://models/lda_model.o");
+		// ModelFilesManager modelFilesManager = new ModelFilesManager();
+		// modelFilesManager.saveModel(ldaModel.toLocal(), "D://models/lda_model.o");
 
 		// Opisanie topicow za pomoca slow wraz z wagami
 		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(10);
 		TopicsDescriptionWriter.writeToFile(d, mapping);
-		context.getBean(TopicsWordsDao.class).insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
+		// context.getBean(TopicsWordsDao.class).insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
 
 		// Opisanie dokumentow za pomoca topicow wraz z wagami
 		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
 		TopicsDistributionWriter.writeToFile(td);
-		return ldaModel;
+	}
 
+	public static void main(String[] args) throws IOException {
+		SparkLDA l = new SparkLDA();
+		l.bulidModel();
 	}
 }

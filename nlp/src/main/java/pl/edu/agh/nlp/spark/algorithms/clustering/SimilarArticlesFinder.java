@@ -1,5 +1,10 @@
-package pl.edu.agh.nlp.spark.algorithms;
+package pl.edu.agh.nlp.spark.algorithms.clustering;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -7,9 +12,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.clustering.KMeans;
 import org.apache.spark.mllib.clustering.KMeansModel;
 import org.apache.spark.mllib.feature.HashingTF;
@@ -18,51 +23,57 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.feature.Normalizer;
 import org.apache.spark.mllib.linalg.BLAS;
 import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.rdd.JdbcRDD;
 
-import pl.edu.agh.nlp.model.ArticleMapper;
 import pl.edu.agh.nlp.model.entities.Article;
-import pl.edu.agh.nlp.spark.SparkContextFactory;
-import pl.edu.agh.nlp.spark.jdbc.PostgresConnection;
-import pl.edu.agh.nlp.spark.utils.Tokenizer;
+import pl.edu.agh.nlp.spark.algorithms.classification.SparkClassification;
+import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
 import pl.edu.agh.nlp.utils.DataCleaner;
+import pl.edu.agh.nlp.utils.Tokenizer;
 import scala.Tuple2;
 
-public class FindSimilar {
+public class SimilarArticlesFinder implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final static Tokenizer tokenizer = new Tokenizer();
+	private static final Logger logger = Logger.getLogger(SparkClassification.class);
 
-	public static void main(String[] args) {
+	private KMeansModel kMeansModel;
+	private static final HashingTF hashingTF = new HashingTF(2000);
 
-		JavaSparkContext jsc = SparkContextFactory.getJavaSparkContext();
+	private IDFModel idfModel;
+	private JavaPairRDD<Long, Integer> idsWithClustersNumbers;
+	private JavaPairRDD<Long, Vector> tfidfData;
 
+	public void builidModel() {
 		// Wczytanie danych (artykulow) z bazy danych
-		JavaRDD<Article> data = JdbcRDD.create(jsc, new PostgresConnection(),
-				"select * from articles where  ? <= id AND id <= ?", 1, 1000, 2, new ArticleMapper());
+		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
 		data = data.filter(f -> f.getText() != null);
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
-				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(DataCleaner.clean(r.getText()))))
-				.filter(a -> !a._2.isEmpty()));
+				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
 
 		// Budowa modelu TF
-		HashingTF hashingTF = new HashingTF(2000);
 		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
 
 		// Budowa modelu IDF
-		IDFModel idfModel = new IDF().fit(tfData.values());
-		JavaPairRDD<Long, Vector> tfidfData = tfData.mapValues(v -> idfModel.transform(v));
+		idfModel = new IDF().fit(tfData.values());
+		tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 		JavaRDD<Vector> corpus = tfidfData.values();
 		corpus.cache();
-		KMeansModel clusters = KMeans.train(corpus.rdd(), 10, 10);
-		System.out.println("Model zbudowany");
+		kMeansModel = KMeans.train(corpus.rdd(), 10, 10);
+		logger.info("Model zbudowany");
 
-		JavaPairRDD<Long, Integer> idsWithClustersNumbers = tfidfData.keys().zip(clusters.predict(corpus));
-		System.out.println("Korpus przeliczony");
+		idsWithClustersNumbers = tfidfData.keys().zip(kMeansModel.predict(corpus));
+		logger.info("Korpus przeliczony");
 
-		String txt = "Pod koniec czerwca odby³ siê test przypominaj¹cego swoim wygl¹dem lataj¹cy talerz urz¹dzenia o nazwie Low-Density Supersonic Decelerator (LDSD). O tym, ze test zakoñczy³ siê sukcesem wiedziano ju¿ tego samego dnia, ale dopiero niedawno NASA opublikowa³a nagranie z kamer zainstalowanych na samym pojeŸdzie.";
+	}
+
+	public void find(String txt) {
 		Vector txtAsVector = idfModel.transform(hashingTF.transform(tokenizer.tokenize(DataCleaner.clean(txt))));
-		int p = clusters.predict(txtAsVector);
+		int p = kMeansModel.predict(txtAsVector);
 
 		Normalizer n = new Normalizer();
 		Vector norTxtAsVector = n.transform(txtAsVector);
@@ -71,7 +82,6 @@ public class FindSimilar {
 				.mapValues(t -> BLAS.dot(norTxtAsVector, n.transform(t._2))).collectAsMap();
 
 		System.out.println(sortByValue(wynik));
-		System.out.println(BLAS.dot(norTxtAsVector, n.transform(tfidfData.lookup(10l).get(0))));
 	}
 
 	public void countCosine(Vector v1, Vector v2) {
@@ -82,9 +92,17 @@ public class FindSimilar {
 	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
 		Map<K, V> result = new LinkedHashMap<>();
 		Stream<Entry<K, V>> st = map.entrySet().stream();
-
 		st.sorted(Comparator.comparing(e -> e.getValue())).forEach(e -> result.put(e.getKey(), e.getValue()));
-
 		return result;
+	}
+
+	public static void main(String[] args) throws IOException {
+		SimilarArticlesFinder similarArticlesFinder = new SimilarArticlesFinder();
+		similarArticlesFinder.builidModel();
+
+		byte[] encoded = Files.readAllBytes(Paths.get("plik.txt"));
+		String text = new String(encoded, StandardCharsets.UTF_8);
+		System.out.println(text);
+		similarArticlesFinder.find(text);
 	}
 }
