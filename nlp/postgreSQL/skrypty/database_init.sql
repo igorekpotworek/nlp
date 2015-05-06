@@ -29,6 +29,7 @@ INSERT INTO articles (title, intro, text, category )
 delete from articles where text~'Programy do pobrania:';
 
 DELETE FROM articles WHERE ctid NOT IN (SELECT max(ctid) FROM articles GROUP BY title);
-	
+
+COPY articles FROM 'C:\Users\Igor Popko\Dysk Google\Nowe\backup.csv' DELIMITER ',' CSV HEADER;	
 
 

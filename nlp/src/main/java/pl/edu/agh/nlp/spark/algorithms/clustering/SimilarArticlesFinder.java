@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,25 +64,63 @@ public class SimilarArticlesFinder implements Serializable {
 		tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 		JavaRDD<Vector> corpus = tfidfData.values();
 		corpus.cache();
-		kMeansModel = KMeans.train(corpus.rdd(), 10, 10);
+		kMeansModel = KMeans.train(corpus.rdd(), 100, 20);
+		kMeansModel.clusterCenters();
 		logger.info("Model zbudowany");
 
 		idsWithClustersNumbers = tfidfData.keys().zip(kMeansModel.predict(corpus));
+		idsWithClustersNumbers.count();
+
+		// wypisanie wielkosci poszczegolnych klastrow
+
+		Map<Long, Integer> m = idsWithClustersNumbers.collectAsMap();
+		Map<Integer, Integer> m2 = new HashMap<Integer, Integer>();
+
+		for (Long l : m.keySet()) {
+			Integer i = m.get(l);
+			if (m2.containsKey(i)) {
+				m2.put(i, m2.get(i) + 1);
+			} else {
+				m2.put(i, 1);
+			}
+		}
+
+		for (Integer i : m2.keySet())
+			System.out.println("Klaster : " + i + "rozmiar:" + m2.get(i));
+
 		logger.info("Korpus przeliczony");
 
 	}
 
 	public void find(String txt) {
+		long time1 = System.currentTimeMillis();
 		Vector txtAsVector = idfModel.transform(hashingTF.transform(tokenizer.tokenize(DataCleaner.clean(txt))));
+		long time2 = System.currentTimeMillis();
+		System.out.println("time1: " + (time2 - time1));
+
 		int p = kMeansModel.predict(txtAsVector);
+		long time3 = System.currentTimeMillis();
+		System.out.println("time2: " + (time3 - time2));
 
 		Normalizer n = new Normalizer();
 		Vector norTxtAsVector = n.transform(txtAsVector);
+		long time4 = System.currentTimeMillis();
+		System.out.println("time3: " + (time4 - time3));
 
 		Map<Long, Double> wynik = idsWithClustersNumbers.filter(f -> f._2 == p).join(tfidfData)
 				.mapValues(t -> BLAS.dot(norTxtAsVector, n.transform(t._2))).collectAsMap();
 
+		System.out.println("size: " + wynik.size());
+
+		long time5 = System.currentTimeMillis();
+		System.out.println("time4: " + (time5 - time4));
+
 		System.out.println(sortByValue(wynik));
+		long time6 = System.currentTimeMillis();
+
+		System.out.println("time5: " + (time6 - time5));
+		System.out.println("total time : " + (time6 - time1));
+
 	}
 
 	public void countCosine(Vector v1, Vector v2) {
