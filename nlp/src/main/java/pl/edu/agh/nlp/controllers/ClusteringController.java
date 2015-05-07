@@ -1,5 +1,6 @@
 package pl.edu.agh.nlp.controllers;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -14,6 +15,7 @@ import pl.edu.agh.nlp.model.dao.TopicArticleDao;
 import pl.edu.agh.nlp.model.dao.TopicsWordsDao;
 import pl.edu.agh.nlp.model.entities.TopicArticle;
 import pl.edu.agh.nlp.model.entities.TopicWord;
+import pl.edu.agh.nlp.spark.algorithms.lda.SparkLDA;
 
 @RestController
 public class ClusteringController {
@@ -35,7 +37,9 @@ public class ClusteringController {
 
 	@Async
 	@RequestMapping(value = "/topics/rebuild")
-	public Future<String> rebuildModel() {
+	public Future<String> rebuildModel() throws IOException {
+		SparkLDA sparkLDA = SparkLDA.getSparkLDA();
+		sparkLDA.bulidModel();
 		return new AsyncResult<String>("ok");
 	}
 

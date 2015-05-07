@@ -33,9 +33,22 @@ public class SparkLDA implements Serializable {
 	private static ApplicationContext context = new ClassPathXmlApplicationContext("root-context.xml");
 	private static final String MODEL_PATH = "models/recomender/model.o";
 	private static final Logger logger = Logger.getLogger(SparkLDA.class);
+	private static final HashingTF hashingTF = new HashingTF(20000);
 
 	private final static Tokenizer tokenizer = new Tokenizer();
 	private DistributedLDAModel ldaModel;
+
+	private static SparkLDA instance;
+
+	public static synchronized SparkLDA getSparkLDA() {
+		if (instance == null)
+			instance = new SparkLDA();
+		return instance;
+	}
+
+	private SparkLDA() {
+
+	}
 
 	public void bulidModel() throws IOException {
 		// Wczytanie danych (artykulow) z bazy danych
@@ -48,7 +61,6 @@ public class SparkLDA implements Serializable {
 				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
 
 		// Budowa modelu TF
-		HashingTF hashingTF = new HashingTF(2000000);
 		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
 
 		// Mapowanie wektorow TF na słowa
@@ -62,20 +74,22 @@ public class SparkLDA implements Serializable {
 		// Budowa modelu
 
 		// TODO dodac min freq
-		ldaModel = new LDA().setK(100).run(tfidfData);
+		ldaModel = new LDA().setK(1000).run(tfidfData);
 
 		// Serializacja modelu
 		// ModelFilesManager modelFilesManager = new ModelFilesManager();
 		// modelFilesManager.saveModel(ldaModel.toLocal(), "D://models/lda_model.o");
 
 		// Opisanie topicow za pomoca slow wraz z wagami
-		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(10);
+		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(100);
 		TopicsDescriptionWriter.writeToFile(d, mapping);
 		// context.getBean(TopicsWordsDao.class).insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
 
 		// Opisanie dokumentow za pomoca topicow wraz z wagami
-		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
-		TopicsDistributionWriter.writeToFile(td);
+		// List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
+		// TopicsDistributionWriter.writeToFile(td);
+
+		logger.info("LDA model ready");
 	}
 
 	public static void main(String[] args) throws IOException {

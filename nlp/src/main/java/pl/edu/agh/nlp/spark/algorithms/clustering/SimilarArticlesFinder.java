@@ -47,6 +47,18 @@ public class SimilarArticlesFinder implements Serializable {
 	private JavaPairRDD<Long, Integer> idsWithClustersNumbers;
 	private JavaPairRDD<Long, Vector> tfidfData;
 
+	private static SimilarArticlesFinder instance;
+
+	public static synchronized SimilarArticlesFinder getSimilarArticlesFinder() {
+		if (instance == null)
+			instance = new SimilarArticlesFinder();
+		return instance;
+	}
+
+	private SimilarArticlesFinder() {
+
+	}
+
 	public void builidModel() {
 		// Wczytanie danych (artykulow) z bazy danych
 		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
@@ -64,7 +76,7 @@ public class SimilarArticlesFinder implements Serializable {
 		tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 		JavaRDD<Vector> corpus = tfidfData.values();
 		corpus.cache();
-		kMeansModel = KMeans.train(corpus.rdd(), 100, 20);
+		kMeansModel = KMeans.train(corpus.rdd(), 1000000, 20);
 		kMeansModel.clusterCenters();
 		logger.info("Model zbudowany");
 

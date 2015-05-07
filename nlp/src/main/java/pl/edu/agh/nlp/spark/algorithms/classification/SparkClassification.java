@@ -40,11 +40,19 @@ public class SparkClassification implements Serializable {
 
 	private NaiveBayesModel model;
 	private IDFModel idfModel;
+	private static SparkClassification instance;
 
-	public void builidModel() throws AbsentModelException {
-		// TODO
-		System.setProperty("hadoop.home.dir", "C:\\Programs\\hadoop-common-2.2.0-bin-master");
+	public static synchronized SparkClassification getSparkClassification() {
+		if (instance == null)
+			instance = new SparkClassification();
+		return instance;
+	}
 
+	private SparkClassification() {
+
+	}
+
+	public void builidModel() {
 		// Wczytujemy artukuly z bazy danych
 		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
 
@@ -82,19 +90,17 @@ public class SparkClassification implements Serializable {
 		return new IDF().fit(tfData);
 	}
 
-	public double evaluateModel(JavaRDD<LabeledPoint> test) throws AbsentModelException {
-		if (model != null) {
-			// Ewaluacja modelu
-			JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p.features()), p
-					.label()));
-			long accuracy = predictionAndLabel.filter(pl -> {
-				return pl._1().equals(pl._2());
-			}).count();
-			double effectiveness = accuracy / (double) test.count();
-			logger.info("Skutecznosc: " + effectiveness);
-			return effectiveness;
-		} else
-			throw new AbsentModelException();
+	public double evaluateModel(JavaRDD<LabeledPoint> test) {
+		// Ewaluacja modelu
+		JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p.features()), p
+				.label()));
+		long accuracy = predictionAndLabel.filter(pl -> {
+			return pl._1().equals(pl._2());
+		}).count();
+		double effectiveness = accuracy / (double) test.count();
+		logger.info("Skutecznosc: " + effectiveness);
+		return effectiveness;
+
 	}
 
 	public Category predictCategory(String text) throws AbsentModelException {
