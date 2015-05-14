@@ -34,9 +34,9 @@ public class SparkLDA implements Serializable {
 	private static final String MODEL_PATH = "models/recomender/model.o";
 	private static final Logger logger = Logger.getLogger(SparkLDA.class);
 	private static final HashingTF hashingTF = new HashingTF(20000);
-
 	private final static Tokenizer tokenizer = new Tokenizer();
 	private DistributedLDAModel ldaModel;
+	private Multimap<Integer, String> mapping;
 
 	private static SparkLDA instance;
 
@@ -51,30 +51,13 @@ public class SparkLDA implements Serializable {
 	}
 
 	public void bulidModel() throws IOException {
-		// Wczytanie danych (artykulow) z bazy danych
-		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
-
-		data = data.filter(f -> f.getText() != null);
-
-		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
-		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
-				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
-
-		// Budowa modelu TF
-		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
-
-		// Mapowanie wektorow TF na słowa
-		JavaRDD<String> tokens = javaRdd.values().flatMap(t -> t).distinct();
-		Multimap<Integer, String> mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
-
-		// Budowa modelu IDF
-		IDFModel idfModel = new IDF().fit(tfData.values());
-		JavaPairRDD<Long, Vector> tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 
 		// Budowa modelu
+		JavaPairRDD<Long, Vector> corpus = bulidCorpus();
+		corpus.cache();
 
 		// TODO dodac min freq
-		ldaModel = new LDA().setK(1000).run(tfidfData);
+		ldaModel = new LDA().setK(100).run(corpus);
 
 		// Serializacja modelu
 		// ModelFilesManager modelFilesManager = new ModelFilesManager();
@@ -90,6 +73,30 @@ public class SparkLDA implements Serializable {
 		// TopicsDistributionWriter.writeToFile(td);
 
 		logger.info("LDA model ready");
+	}
+
+	public JavaPairRDD<Long, Vector> bulidCorpus() {
+		// Wczytanie danych (artykulow) z bazy danych
+		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
+
+		data = data.filter(f -> f.getText() != null);
+
+		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
+		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
+				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(
+				a -> !a._2.isEmpty()));
+		// Budowa modelu TF
+		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
+
+		// Mapowanie wektorow TF na słowa
+		JavaRDD<String> tokens = javaRdd.values().flatMap(t -> t).distinct();
+		mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
+
+		// Budowa modelu IDF
+		IDFModel idfModel = new IDF().fit(tfData.values());
+		JavaPairRDD<Long, Vector> tfidfData = tfData.mapValues(v -> idfModel.transform(v));
+		logger.info("LDA corpus created");
+		return tfidfData;
 	}
 
 	public static void main(String[] args) throws IOException {
