@@ -1,0 +1,3 @@
+CREATE TABLE articles (id UNSIGNED_LONG PRIMARY KEY, title VARCHAR, intro VARCHAR, text VARCHAR, category VARCHAR);
+
+CREATE SEQUENCE articles_seq;
