@@ -33,7 +33,7 @@ public class SparkLDA implements Serializable {
 	private static ApplicationContext context = new ClassPathXmlApplicationContext("root-context.xml");
 	private static final String MODEL_PATH = "models/recomender/model.o";
 	private static final Logger logger = Logger.getLogger(SparkLDA.class);
-	private static final HashingTF hashingTF = new HashingTF(20000);
+	private static final HashingTF hashingTF = new HashingTF(1000000);
 	private final static Tokenizer tokenizer = new Tokenizer();
 	private DistributedLDAModel ldaModel;
 	private Multimap<Integer, String> mapping;
@@ -57,14 +57,14 @@ public class SparkLDA implements Serializable {
 		corpus.cache();
 
 		// TODO dodac min freq
-		ldaModel = new LDA().setK(100).run(corpus);
+		ldaModel = new LDA().setK(100).setAlpha(1.01).run(corpus);
 
 		// Serializacja modelu
 		// ModelFilesManager modelFilesManager = new ModelFilesManager();
 		// modelFilesManager.saveModel(ldaModel.toLocal(), "D://models/lda_model.o");
 
 		// Opisanie topicow za pomoca slow wraz z wagami
-		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(100);
+		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(20);
 		TopicsDescriptionWriter.writeToFile(d, mapping);
 		// context.getBean(TopicsWordsDao.class).insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
 
@@ -83,17 +83,18 @@ public class SparkLDA implements Serializable {
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
-				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(
-				a -> !a._2.isEmpty()));
+				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
 		// Budowa modelu TF
 		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
 
 		// Mapowanie wektorow TF na słowa
 		JavaRDD<String> tokens = javaRdd.values().flatMap(t -> t).distinct();
+		logger.info("Tokens count: " + tokens.count());
+
 		mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
 
 		// Budowa modelu IDF
-		IDFModel idfModel = new IDF().fit(tfData.values());
+		IDFModel idfModel = new IDF(30).fit(tfData.values());
 		JavaPairRDD<Long, Vector> tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 		logger.info("LDA corpus created");
 		return tfidfData;
