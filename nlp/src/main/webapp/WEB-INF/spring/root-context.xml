@@ -18,23 +18,23 @@
 		<property name="password" value="${jdbc.password}" />
 	</bean>
 
-	<bean id="articlesDao" class="pl.edu.agh.nlp.model.dao.ArticlesDao">
+	<bean id="articlesDao" class="pl.edu.agh.nlp.model.postgresqlDao.ArticlesDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsWordsDao" class="pl.edu.agh.nlp.model.dao.TopicsWordsDao">
+	<bean id="topicsWordsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsWordsDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsDao" class="pl.edu.agh.nlp.model.dao.TopicsDao">
+	<bean id="topicsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.dao.TopicArticleDao">
+	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicArticleDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="usersDao" class="pl.edu.agh.nlp.model.dao.UsersDao">
+	<bean id="usersDao" class="pl.edu.agh.nlp.model.postgresqlDao.UsersDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	

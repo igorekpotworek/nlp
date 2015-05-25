@@ -20,11 +20,6 @@ public class HomeController {
 	@Autowired
 	private ArticlesDao articlesDao;
 
-	@RequestMapping(value = "/")
-	public String home() {
-		return "Hello in NLP System";
-	}
-
 	@Async
 	@RequestMapping(value = "/clean")
 	public Future<String> clean() {
