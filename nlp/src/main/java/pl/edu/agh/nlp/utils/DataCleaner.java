@@ -13,13 +13,13 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import pl.edu.agh.nlp.model.dao.ArticlesDao;
 import pl.edu.agh.nlp.model.entities.Article;
-import pl.edu.agh.nlp.model.postgresqlDao.ArticlesDaoPostgresql;
 
 @Service
 public class DataCleaner {
 	@Autowired
-	private ArticlesDaoPostgresql articlesDao;
+	private ArticlesDao articlesDao;
 
 	private static final Logger logger = Logger.getLogger(DataCleaner.class);
 

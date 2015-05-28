@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="org.apache.phoenix.jdbc.PhoenixDriver" />
+		<property name="url" value="jdbc:phoenix:localhost" />
+	</bean>
+
+	<bean id="articlesDao" class="pl.edu.agh.nlp.model.hbaseDao.ArticlesDaoHbase">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="topicsWordsDao" class="pl.edu.agh.nlp.model.hbaseDao.TopicsWordsDaoHbase">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="topicsDao" class="pl.edu.agh.nlp.model.hbaseDao.TopicsDaoHbase">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.hbaseDao.TopicArticleDaoHbase">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="usersDao" class="pl.edu.agh.nlp.model.hbaseDao.UsersDaoHbase">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+</beans>
+	

@@ -6,38 +6,17 @@
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
             http://www.springframework.org/schema/context
             http://www.springframework.org/schema/context/spring-context-3.0.xsd">
-	
+
 	<!-- Root Context: defines shared resources visible to all other web components -->
-	<context:component-scan base-package="pl.edu.agh.nlp" />
+	<context:component-scan base-package="pl.edu.agh.nlp">
+		<context:exclude-filter type="regex"
+			expression="pl.edu.agh.nlp.controllers.*" />
+	</context:component-scan>
+	
+	<context:annotation-config />
 
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
-		destroy-method="close">
-		<property name="driverClassName" value="${jdbc.driverClassName}"/>
-		<property name="url" value="${jdbc.url}" />
-		<property name="username" value="${jdbc.username}" />
-		<property name="password" value="${jdbc.password}" />
-	</bean>
+	<!-- <import resource="postgresql-config.xml" /> -->
+	<import resource="phoenix-config.xml" />
+	
 
-	<bean id="articlesDao" class="pl.edu.agh.nlp.model.postgresqlDao.ArticlesDaoPostgresql">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
-	<bean id="topicsWordsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsWordsDaoPostgresql">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
-	<bean id="topicsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsDaoPostgresql">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
-	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicArticleDaoPostgresql">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
-	<bean id="usersDao" class="pl.edu.agh.nlp.model.postgresqlDao.UsersDaoPostgresql">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
-	<context:property-placeholder location="classpath:jdbc.properties" />
-		
 </beans>
