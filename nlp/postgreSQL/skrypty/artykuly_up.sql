@@ -39,21 +39,39 @@ wstep VARCHAR
 );
 
 
+
 CREATE TABLE articles (
-id SERIAL,
+id SERIAL PRIMARY KEY,
 title varchar,
 intro varchar,
 text varchar,
 category varchar);
-
-create table topics (
-id integer);
 
 create table topics_words (
 topicId integer,
 word varchar,
 weight double precision);
 
+create table topics_articles (
+articleId integer,
+topicId integer,
+weight double precision);
+
+create table users (
+id SERIAL PRIMARY KEY,
+firstname varchar,
+lastname varchar
+);
+
+create table users_articles (
+userId integer,
+articleId integer,
+rating double precision
+);
+
 CREATE INDEX articles_category_index ON articles (category);
+
+up dla hbase 
+wrzucic recommeders data do bazy
 
 
