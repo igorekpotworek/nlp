@@ -32,7 +32,7 @@ public class ArticleMapper implements Function<ResultSet, Article> {
 		} catch (SQLException e) {
 		}
 		try {
-			article.setId(resultSet.getLong("id"));
+			article.setId(resultSet.getInt("id"));
 		} catch (SQLException e) {
 		}
 

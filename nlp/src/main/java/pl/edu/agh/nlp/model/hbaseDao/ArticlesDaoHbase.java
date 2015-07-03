@@ -16,7 +16,7 @@ import pl.edu.agh.nlp.model.entities.Article;
 public class ArticlesDaoHbase extends NamedParameterJdbcDaoSupport implements ArticlesDao {
 
 	public void insert(final Article article) {
-		String sql = "upsert into articles(title, intro, text) values (:title, :intro, :text)";
+		String sql = "upsert into articles(id, title, intro, text) values (NEXT VALUE FOR articles_seq, :title, :intro, :text)";
 		getNamedParameterJdbcTemplate().update(sql, new BeanPropertySqlParameterSource(article));
 	}
 
@@ -38,7 +38,7 @@ public class ArticlesDaoHbase extends NamedParameterJdbcDaoSupport implements Ar
 	}
 
 	public void updateBatch(final List<Article> articles) {
-		String sql = "update articles set text=:text, intro=:intro where id=:id";
+		String sql = "upsert into articles(id, title, intro, text) values (:id, :title, :intro, :text)";
 		SqlParameterSource[] params = SqlParameterSourceUtils.createBatch(articles.toArray());
 		getNamedParameterJdbcTemplate().batchUpdate(sql, params);
 	}

@@ -26,4 +26,5 @@ public class HomeController {
 		dataCleaner.cleanArticles();
 		return new AsyncResult<String>("ok");
 	}
+
 }

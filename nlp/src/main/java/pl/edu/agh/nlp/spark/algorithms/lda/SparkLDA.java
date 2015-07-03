@@ -13,9 +13,11 @@ import org.apache.spark.mllib.feature.HashingTF;
 import org.apache.spark.mllib.feature.IDF;
 import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import pl.edu.agh.nlp.model.dao.TopicArticleDao;
+import pl.edu.agh.nlp.model.dao.TopicsWordsDao;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
 import pl.edu.agh.nlp.utils.Tokenizer;
@@ -24,31 +26,23 @@ import scala.Tuple2;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
+@Service
 public class SparkLDA implements Serializable {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -2830677796836853217L;
 
-	private static ApplicationContext context = new ClassPathXmlApplicationContext("root-context.xml");
-	private static final String MODEL_PATH = "models/recomender/model.o";
 	private static final Logger logger = Logger.getLogger(SparkLDA.class);
 	private static final HashingTF hashingTF = new HashingTF(1000000);
 	private final static Tokenizer tokenizer = new Tokenizer();
 	private DistributedLDAModel ldaModel;
 	private Multimap<Integer, String> mapping;
 
-	private static SparkLDA instance;
-
-	public static synchronized SparkLDA getSparkLDA() {
-		if (instance == null)
-			instance = new SparkLDA();
-		return instance;
-	}
-
-	private SparkLDA() {
-
-	}
+	@Autowired
+	private TopicsWordsDao topicsWordsDao;
+	@Autowired
+	private TopicArticleDao topicArticleDao;
 
 	public void bulidModel() throws IOException {
 
@@ -59,17 +53,19 @@ public class SparkLDA implements Serializable {
 		// TODO dodac min freq
 		ldaModel = new LDA().setK(100).setAlpha(1.01).run(corpus);
 
-		// Serializacja modelu
-		// ModelFilesManager modelFilesManager = new ModelFilesManager();
-		// modelFilesManager.saveModel(ldaModel.toLocal(), "D://models/lda_model.o");
-
 		// Opisanie topicow za pomoca slow wraz z wagami
 		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(20);
-		TopicsDescriptionWriter.writeToFile(d, mapping);
-		// context.getBean(TopicsWordsDao.class).insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
 
+		// TopicsDescriptionWriter.writeToFile(d, mapping);
+		logger.info("Saving Data to database");
+		topicsWordsDao.deleteAll();
+		topicsWordsDao.insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
+
+		topicArticleDao.deleteAll();
 		// Opisanie dokumentow za pomoca topicow wraz z wagami
-		// List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
+		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
+		topicArticleDao.insert(TopicsDistributionWriter.convertToTopicArticle(td));
+
 		// TopicsDistributionWriter.writeToFile(td);
 
 		logger.info("LDA model ready");
@@ -83,14 +79,13 @@ public class SparkLDA implements Serializable {
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
-				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
+				r -> new Tuple2<Long, List<String>>(r.getId().longValue(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
 		// Budowa modelu TF
 		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));
 
 		// Mapowanie wektorow TF na słowa
 		JavaRDD<String> tokens = javaRdd.values().flatMap(t -> t).distinct();
 		logger.info("Tokens count: " + tokens.count());
-
 		mapping = Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
 
 		// Budowa modelu IDF
@@ -98,10 +93,5 @@ public class SparkLDA implements Serializable {
 		JavaPairRDD<Long, Vector> tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 		logger.info("LDA corpus created");
 		return tfidfData;
-	}
-
-	public static void main(String[] args) throws IOException {
-		SparkLDA l = new SparkLDA();
-		l.bulidModel();
 	}
 }

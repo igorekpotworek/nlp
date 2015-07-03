@@ -5,6 +5,10 @@ public class TopicArticle {
 	private Integer topicId;
 	private Double weight;
 
+	public TopicArticle() {
+		super();
+	}
+
 	public TopicArticle(Long articleId, Integer topicId, Double weight) {
 		this.articleId = articleId;
 		this.topicId = topicId;

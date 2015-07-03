@@ -10,4 +10,6 @@ public interface TopicsWordsDao {
 
 	public List<TopicWord> findAll();
 
+	public void deleteAll();
+
 }

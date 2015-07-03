@@ -21,8 +21,13 @@ public class TopicArticleDaoHbase extends NamedParameterJdbcDaoSupport implement
 	}
 
 	public List<TopicArticle> findByTopicsByArticleId(final Long articleId) {
-		String sql = "select topicId, articleId, weight from  values topics_articles where articleId=:articleId";
-		Map<String, Object> parameters = Collections.singletonMap("topicId", articleId);
+		String sql = "select topicId, articleId, weight from topics_articles where articleId=:articleId";
+		Map<String, Object> parameters = Collections.singletonMap("articleId", articleId);
 		return getNamedParameterJdbcTemplate().query(sql, parameters, new BeanPropertyRowMapper<TopicArticle>(TopicArticle.class));
+	}
+
+	public void deleteAll() {
+		String sql = "delete from topics_articles";
+		getJdbcTemplate().update(sql);
 	}
 }

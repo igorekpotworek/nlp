@@ -40,12 +40,13 @@ public class SparkClassification implements Serializable {
 
 	private NaiveBayesModel model;
 	private IDFModel idfModel;
-	private static SparkClassification instance;
 
-	public static synchronized SparkClassification getSparkClassification() {
-		if (instance == null)
-			instance = new SparkClassification();
-		return instance;
+	private static class InstanceHolder {
+		private static final SparkClassification INSTANCE = new SparkClassification();
+	}
+
+	public static SparkClassification getSparkClassification() {
+		return InstanceHolder.INSTANCE;
 	}
 
 	private SparkClassification() {

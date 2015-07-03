@@ -40,7 +40,7 @@ public class Article implements Serializable {
 	private String title;
 	private String intro;
 	private String text;
-	private Long id;
+	private Integer id;
 	private Category category;
 
 	public String getTitle() {
@@ -67,11 +67,11 @@ public class Article implements Serializable {
 		this.text = text;
 	}
 
-	public Long getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

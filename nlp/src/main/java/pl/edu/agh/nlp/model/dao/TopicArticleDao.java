@@ -9,4 +9,6 @@ public interface TopicArticleDao {
 	public void insert(final List<TopicArticle> topics);
 
 	public List<TopicArticle> findByTopicsByArticleId(final Long articleId);
+
+	public void deleteAll();
 }

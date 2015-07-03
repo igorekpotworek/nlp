@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.core.io.ClassPathResource;
+
 public class Tokenizer implements Serializable {
 	/**
 	 * 
@@ -20,9 +22,10 @@ public class Tokenizer implements Serializable {
 	private final static String STOP_WORDS_FILE = "stopwords.txt";
 
 	public Tokenizer() {
+
 		stemmer = new Stemmer();
 		try {
-			stopWords = Files.readAllLines(Paths.get(STOP_WORDS_FILE));
+			stopWords = Files.readAllLines(Paths.get(new ClassPathResource(STOP_WORDS_FILE).getFile().getAbsolutePath()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

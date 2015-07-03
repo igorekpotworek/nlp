@@ -25,8 +25,12 @@ public class ClusteringController {
 	@Autowired
 	private TopicsWordsDao topicsWordsDao;
 
+	@Autowired
+	private SparkLDA sparkLDA;
+
 	@RequestMapping(value = "/topics/article")
 	public List<TopicArticle> getTopicsOfArticle(@RequestParam(value = "articleId") Long articleId) {
+		System.out.println("wchodze");
 		return topicArticleDao.findByTopicsByArticleId(articleId);
 	}
 
@@ -38,7 +42,6 @@ public class ClusteringController {
 	@Async
 	@RequestMapping(value = "/topics/rebuild")
 	public Future<String> rebuildModel() throws IOException {
-		SparkLDA sparkLDA = SparkLDA.getSparkLDA();
 		sparkLDA.bulidModel();
 		return new AsyncResult<String>("ok");
 	}

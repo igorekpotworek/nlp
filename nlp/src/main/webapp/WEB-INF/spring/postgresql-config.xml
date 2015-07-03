@@ -23,10 +23,6 @@
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsDaoPostgresql">
-		<property name="dataSource" ref="dataSource" />
-	</bean>
-	
 	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicArticleDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>

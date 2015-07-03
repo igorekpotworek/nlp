@@ -9,7 +9,7 @@ import pl.edu.agh.nlp.model.entities.User;
 public class UsersDaoHbase extends NamedParameterJdbcDaoSupport implements UsersDao {
 
 	public void insert(final User user) {
-		String sql = "upsert into users(firstname, lastname) values (:firstname, :lastname)";
+		String sql = "upsert into users(id, firstname, lastname) values (NEXT VALUE FOR users_seq, :firstname, :lastname)";
 		getNamedParameterJdbcTemplate().update(sql, new BeanPropertySqlParameterSource(user));
 	}
 }

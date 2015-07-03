@@ -22,4 +22,9 @@ public class TopicsWordsDaoHbase extends NamedParameterJdbcDaoSupport implements
 		return getJdbcTemplate().query(sql, new BeanPropertyRowMapper<TopicWord>(TopicWord.class));
 	}
 
+	public void deleteAll() {
+		String sql = "delete from topics_words";
+		getJdbcTemplate().update(sql);
+	}
+
 }

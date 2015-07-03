@@ -66,7 +66,7 @@ public class SimilarArticlesFinder implements Serializable {
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
 		JavaPairRDD<Long, List<String>> javaRdd = JavaPairRDD.fromJavaRDD(data.map(
-				r -> new Tuple2<Long, List<String>>(r.getId(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
+				r -> new Tuple2<Long, List<String>>(r.getId().longValue(), tokenizer.tokenize(r.getText()))).filter(a -> !a._2.isEmpty()));
 
 		// Budowa modelu TF
 		JavaPairRDD<Long, Vector> tfData = javaRdd.mapValues(f -> hashingTF.transform(f));

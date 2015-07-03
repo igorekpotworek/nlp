@@ -16,7 +16,7 @@ public class ArticlesReader {
 	public static JavaRDD<Article> readArticlesToRDD() {
 		SparkContext sc = SparkContextFactory.getSparkContext();
 		JavaSparkContext jsc = new JavaSparkContext(sc);
-		return JdbcRDD.create(jsc, new PostgresConnection(), "select * from articles where  ? <= id AND id <= ?", 1, 600000, 4,
+		return JdbcRDD.create(jsc, new PostgresConnection(), "select * from articles where  ? <= id AND id <= ?", 0, 600000, 4,
 				new ArticleMapper());
 	}
 

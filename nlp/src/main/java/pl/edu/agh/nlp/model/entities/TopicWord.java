@@ -5,6 +5,10 @@ public class TopicWord {
 	private String word;
 	private Double weight;
 
+	public TopicWord() {
+		super();
+	}
+
 	public TopicWord(Integer topicId, String word, Double weight) {
 		this.topicId = topicId;
 		this.word = word;
