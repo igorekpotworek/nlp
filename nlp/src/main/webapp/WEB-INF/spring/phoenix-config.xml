@@ -20,12 +20,15 @@
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	
 	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.hbaseDao.TopicArticleDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
 	<bean id="usersDao" class="pl.edu.agh.nlp.model.hbaseDao.UsersDaoHbase">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="usersArticlesDao" class="pl.edu.agh.nlp.model.hbaseDao.UsersArticlesDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
