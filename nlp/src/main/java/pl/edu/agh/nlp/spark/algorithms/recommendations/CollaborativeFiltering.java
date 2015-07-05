@@ -3,39 +3,32 @@ package pl.edu.agh.nlp.spark.algorithms.recommendations;
 import org.apache.spark.api.java.JavaDoubleRDD;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import pl.edu.agh.nlp.spark.SparkContextFactory;
+import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
 import scala.Tuple2;
 
+@Service
 public class CollaborativeFiltering {
 
-	private static final String MODEL_PATH = "models/recomender/model.o";
-
 	private MatrixFactorizationModel model;
+	@Autowired
+	private ArticlesReader articlesReader;
 
 	public void builidModel() {
-		JavaSparkContext sc = SparkContextFactory.getJavaSparkContext();
 
-		// Wczytanie danych
-		JavaRDD<String> data = sc.textFile("u.data");
-		JavaRDD<Rating> ratings = data.map(r -> {
-			String[] sarray = r.split("\t");
-			return new Rating(Integer.parseInt(sarray[0]), Integer.parseInt(sarray[1]), Double.parseDouble(sarray[2]));
-		});
-
-		// JavaRDD<Rating> ratings = ArticlesReader.readArticlesHistoryToRDD();
+		JavaRDD<Rating> ratings = articlesReader.readArticlesHistoryToRDD();
 		// Budowa modelu
+		// im wyzszy tym lepiej
 		int rank = 50;
+		// im wyzszy tym lepiej
 		int numIterations = 10;
 		model = ALS.train(JavaRDD.toRDD(ratings), rank, numIterations, 0.01);
-	}
-
-	public void saveModel(JavaSparkContext sc, MatrixFactorizationModel model) {
-		model.save(sc.sc(), MODEL_PATH);
+		evaluateModel(ratings);
 	}
 
 	public void evaluateModel(JavaRDD<Rating> evaluateData) {
@@ -55,6 +48,10 @@ public class CollaborativeFiltering {
 			return (Object) (err * err);
 		}).rdd()).mean();
 		System.out.println("Mean Squared Error = " + MSE);
+	}
+
+	public Rating[] recommend(Integer userId) {
+		return model.recommendProducts(userId, 10);
 	}
 
 }

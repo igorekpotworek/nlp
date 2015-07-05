@@ -44,6 +44,9 @@ public class SparkLDA implements Serializable {
 	@Autowired
 	private TopicArticleDao topicArticleDao;
 
+	@Autowired
+	private ArticlesReader articlesReader;
+
 	public void bulidModel() throws IOException {
 
 		// Budowa modelu
@@ -73,7 +76,7 @@ public class SparkLDA implements Serializable {
 
 	public JavaPairRDD<Long, Vector> bulidCorpus() {
 		// Wczytanie danych (artykulow) z bazy danych
-		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
+		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
 
 		data = data.filter(f -> f.getText() != null);
 

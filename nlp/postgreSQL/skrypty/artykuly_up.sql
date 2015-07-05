@@ -71,7 +71,23 @@ rating double precision
 
 CREATE INDEX articles_category_index ON articles (category);
 
-up dla hbase 
-wrzucic recommeders data do bazy
 
+int rank = 50;
+int numIterations = 10;
+Mean Squared Error = 0.0842771322492907
 
+int rank = 50;
+int numIterations = 20;
+Mean Squared Error = 0.07063470510860964
+
+int rank = 100;
+int numIterations = 10;
+Mean Squared Error = 0.015337033401912253
+
+int rank = 200;
+int numIterations = 10;
+Mean Squared Error = 0.008268974717455458
+
+int rank = 200;
+int numIterations = 20;
+Mean Squared Error = 0.008174461249078665

@@ -22,11 +22,12 @@ public class ClassificationController {
 
 	@Autowired
 	private ArticlesDao articlesDao;
+	@Autowired
+	private SparkClassification sparkClassification;
 
 	@RequestMapping(value = "/classify")
 	public Category classifyArticleById(@RequestParam(value = "articleId") Long articleId) throws AbsentModelException {
 		Article article = articlesDao.findById(articleId);
-		SparkClassification sparkClassification = SparkClassification.getSparkClassification();
 		try {
 			return sparkClassification.predictCategory(article.getText());
 		} catch (AbsentModelException e) {
@@ -37,7 +38,6 @@ public class ClassificationController {
 
 	@RequestMapping(value = "/classify", method = RequestMethod.POST)
 	public Category classifyArticle(@RequestBody Article article) throws AbsentModelException {
-		SparkClassification sparkClassification = SparkClassification.getSparkClassification();
 		try {
 			return sparkClassification.predictCategory(article.getText());
 		} catch (AbsentModelException e) {
@@ -49,7 +49,6 @@ public class ClassificationController {
 	@Async
 	@RequestMapping(value = "/classify/rebuild")
 	public Future<String> rebuildModel() {
-		SparkClassification sparkClassification = SparkClassification.getSparkClassification();
 		sparkClassification.builidModel();
 		return new AsyncResult<String>("ok");
 	}

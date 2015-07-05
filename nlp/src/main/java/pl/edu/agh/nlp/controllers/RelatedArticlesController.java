@@ -20,6 +20,8 @@ public class RelatedArticlesController {
 
 	@Autowired
 	private ArticlesDao articlesDao;
+	@Autowired
+	private SimilarArticlesFinder similarArticlesFinder;
 
 	@RequestMapping(value = "/relatedArticles")
 	public List<TopicWord> getRelatedArticles(@RequestParam(value = "articleId") Long articleId) {
@@ -31,7 +33,6 @@ public class RelatedArticlesController {
 	@Async
 	@RequestMapping(value = "/relatedArticles/rebuild")
 	public Future<String> rebuildModel() {
-		SimilarArticlesFinder similarArticlesFinder = SimilarArticlesFinder.getSimilarArticlesFinder();
 		similarArticlesFinder.builidModel();
 		return new AsyncResult<String>("ok");
 	}

@@ -13,6 +13,8 @@ import org.apache.spark.mllib.feature.IDF;
 import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.regression.LabeledPoint;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
 import pl.edu.agh.nlp.model.entities.Article;
@@ -24,6 +26,7 @@ import scala.Tuple2;
 
 import com.google.common.collect.Lists;
 
+@Service
 public class SparkClassification implements Serializable {
 
 	/**
@@ -41,21 +44,12 @@ public class SparkClassification implements Serializable {
 	private NaiveBayesModel model;
 	private IDFModel idfModel;
 
-	private static class InstanceHolder {
-		private static final SparkClassification INSTANCE = new SparkClassification();
-	}
-
-	public static SparkClassification getSparkClassification() {
-		return InstanceHolder.INSTANCE;
-	}
-
-	private SparkClassification() {
-
-	}
+	@Autowired
+	private ArticlesReader articlesReader;
 
 	public void builidModel() {
 		// Wczytujemy artukuly z bazy danych
-		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
+		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
 
 		// Filtrujemy tylko te z tekstem i kategoria
 		data = data.filter(a -> a.getText() != null && !a.getText().isEmpty()).filter(a -> a.getCategory() != null);

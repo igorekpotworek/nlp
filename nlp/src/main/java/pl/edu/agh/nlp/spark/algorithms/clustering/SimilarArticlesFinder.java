@@ -24,6 +24,8 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.feature.Normalizer;
 import org.apache.spark.mllib.linalg.BLAS;
 import org.apache.spark.mllib.linalg.Vector;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.algorithms.classification.SparkClassification;
@@ -32,6 +34,7 @@ import pl.edu.agh.nlp.utils.DataCleaner;
 import pl.edu.agh.nlp.utils.Tokenizer;
 import scala.Tuple2;
 
+@Service
 public class SimilarArticlesFinder implements Serializable {
 	/**
 	 * 
@@ -47,21 +50,12 @@ public class SimilarArticlesFinder implements Serializable {
 	private JavaPairRDD<Long, Integer> idsWithClustersNumbers;
 	private JavaPairRDD<Long, Vector> tfidfData;
 
-	private static SimilarArticlesFinder instance;
-
-	public static synchronized SimilarArticlesFinder getSimilarArticlesFinder() {
-		if (instance == null)
-			instance = new SimilarArticlesFinder();
-		return instance;
-	}
-
-	private SimilarArticlesFinder() {
-
-	}
+	@Autowired
+	private ArticlesReader articlesReader;
 
 	public void builidModel() {
 		// Wczytanie danych (artykulow) z bazy danych
-		JavaRDD<Article> data = ArticlesReader.readArticlesToRDD();
+		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
 		data = data.filter(f -> f.getText() != null);
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
