@@ -2,7 +2,7 @@ package pl.edu.agh.nlp.model.entities;
 
 public class UserArticle {
 	private Integer userId;
-	private Long articleId;
+	private Integer articleId;
 	private Double rating;
 
 	public Integer getUserId() {
@@ -13,11 +13,11 @@ public class UserArticle {
 		this.userId = userId;
 	}
 
-	public Long getArticleId() {
+	public Integer getArticleId() {
 		return articleId;
 	}
 
-	public void setArticleId(Long articleId) {
+	public void setArticleId(Integer articleId) {
 		this.articleId = articleId;
 	}
 

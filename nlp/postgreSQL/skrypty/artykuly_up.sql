@@ -91,3 +91,5 @@ Mean Squared Error = 0.008268974717455458
 int rank = 200;
 int numIterations = 20;
 Mean Squared Error = 0.008174461249078665
+
+jak stackoverflo xss zwiekszac

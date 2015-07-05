@@ -29,6 +29,7 @@ public class CollaborativeFiltering {
 		int numIterations = 10;
 		model = ALS.train(JavaRDD.toRDD(ratings), rank, numIterations, 0.01);
 		evaluateModel(ratings);
+
 	}
 
 	public void evaluateModel(JavaRDD<Rating> evaluateData) {
