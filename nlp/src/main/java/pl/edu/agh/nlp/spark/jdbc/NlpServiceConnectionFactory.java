@@ -16,7 +16,7 @@ public class NlpServiceConnectionFactory implements JdbcRDD.ConnectionFactory, A
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 8564699495854982022L;
 	private static ApplicationContext CONTEXT;
 
 	@Override

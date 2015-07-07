@@ -38,7 +38,7 @@ public class ArticleMapper implements Function<ResultSet, Article> {
 
 		try {
 			article.setCategory(Category.valueOf(resultSet.getString("category").toUpperCase()));
-		} catch (SQLException e) {
+		} catch (NullPointerException | SQLException e) {
 		}
 
 		return article;

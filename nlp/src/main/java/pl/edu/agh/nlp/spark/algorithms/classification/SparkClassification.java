@@ -105,17 +105,4 @@ public class SparkClassification implements Serializable {
 			throw new AbsentModelException();
 	}
 
-	public static void test() throws AbsentModelException {
-		SparkClassification sparkClassification = new SparkClassification();
-		sparkClassification.builidModel();
-
-		String zdanie1 = "Rafał Sonik wygrał Rajd Kataru. Quadowiec ORLEN Team bezpiecznie dowiózł do mety przewagę nad Mohamedem Abu-Issą i odniósł swoje pierwsze zwycięstwo w Pucharze Świata w tym sezonie. Katarski klasyk na wysokich miejscach ukończyły również dwie samochodowe załogi polskiego zespołu. Jacek Czachor i Marek Dąbrowski zajęli piąte miejsce, a oczko niżej znaleźli się Adam Małysz z pilotem Rafałem Martonem. Obie załogi zdobyły punkty do klasyfikacji Pucharu Świata FIA w rajdach terenowych.";
-
-		System.out.println(sparkClassification.predictCategory(zdanie1));
-	}
-
-	public static void main(String[] args) throws AbsentModelException {
-		test();
-
-	}
 }

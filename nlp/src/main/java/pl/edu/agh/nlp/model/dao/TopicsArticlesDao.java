@@ -4,11 +4,11 @@ import java.util.List;
 
 import pl.edu.agh.nlp.model.entities.TopicArticle;
 
-public interface TopicArticleDao {
+public interface TopicsArticlesDao {
 
 	public void insert(final List<TopicArticle> topics);
 
-	public List<TopicArticle> findByTopicsByArticleId(final Long articleId);
+	public List<TopicArticle> findByTopicsByArticleId(final Integer articleId);
 
 	public void deleteAll();
 }

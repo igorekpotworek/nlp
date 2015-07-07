@@ -1,7 +1,7 @@
 package pl.edu.agh.nlp.model.entities;
 
 public class TopicArticle {
-	private Long articleId;
+	private Integer articleId;
 	private Integer topicId;
 	private Double weight;
 
@@ -9,17 +9,17 @@ public class TopicArticle {
 		super();
 	}
 
-	public TopicArticle(Long articleId, Integer topicId, Double weight) {
+	public TopicArticle(Integer articleId, Integer topicId, Double weight) {
 		this.articleId = articleId;
 		this.topicId = topicId;
 		this.weight = weight;
 	}
 
-	public Long getArticleId() {
+	public Integer getArticleId() {
 		return articleId;
 	}
 
-	public void setArticleId(Long articleId) {
+	public void setArticleId(Integer articleId) {
 		this.articleId = articleId;
 	}
 

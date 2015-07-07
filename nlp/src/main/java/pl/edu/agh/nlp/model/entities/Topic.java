@@ -1,15 +1,15 @@
 package pl.edu.agh.nlp.model.entities;
 
-public class TopicWord {
+public class Topic {
 	private Integer topicId;
 	private String word;
 	private Double weight;
 
-	public TopicWord() {
+	public Topic() {
 		super();
 	}
 
-	public TopicWord(Integer topicId, String word, Double weight) {
+	public Topic(Integer topicId, String word, Double weight) {
 		this.topicId = topicId;
 		this.word = word;
 		this.weight = weight;

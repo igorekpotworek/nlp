@@ -7,36 +7,35 @@ import java.util.concurrent.Future;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import pl.edu.agh.nlp.model.dao.TopicArticleDao;
-import pl.edu.agh.nlp.model.dao.TopicsWordsDao;
+import pl.edu.agh.nlp.model.dao.TopicsArticlesDao;
+import pl.edu.agh.nlp.model.dao.TopicsDao;
+import pl.edu.agh.nlp.model.entities.Topic;
 import pl.edu.agh.nlp.model.entities.TopicArticle;
-import pl.edu.agh.nlp.model.entities.TopicWord;
 import pl.edu.agh.nlp.spark.algorithms.lda.SparkLDA;
 
 @RestController
 public class ClusteringController {
 	@Autowired
-	private TopicArticleDao topicArticleDao;
+	private TopicsArticlesDao topicsArticlesDao;
 
 	@Autowired
-	private TopicsWordsDao topicsWordsDao;
+	private TopicsDao topicsDao;
 
 	@Autowired
 	private SparkLDA sparkLDA;
 
-	@RequestMapping(value = "/topics/article")
-	public List<TopicArticle> getTopicsOfArticle(@RequestParam(value = "articleId") Long articleId) {
-		System.out.println("wchodze");
-		return topicArticleDao.findByTopicsByArticleId(articleId);
+	@RequestMapping(value = "/topics/article/{articleId}")
+	public List<TopicArticle> getTopicsOfArticle(@PathVariable Integer articleId) {
+		return topicsArticlesDao.findByTopicsByArticleId(articleId);
 	}
 
 	@RequestMapping(value = "/topics")
-	public List<TopicWord> getAllTopics() {
-		return topicsWordsDao.findAll();
+	public List<Topic> getAllTopics() {
+		return topicsDao.findAll();
 	}
 
 	@Async

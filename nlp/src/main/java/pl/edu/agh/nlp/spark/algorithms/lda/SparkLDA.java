@@ -16,8 +16,8 @@ import org.apache.spark.mllib.linalg.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import pl.edu.agh.nlp.model.dao.TopicArticleDao;
-import pl.edu.agh.nlp.model.dao.TopicsWordsDao;
+import pl.edu.agh.nlp.model.dao.TopicsArticlesDao;
+import pl.edu.agh.nlp.model.dao.TopicsDao;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
 import pl.edu.agh.nlp.utils.Tokenizer;
@@ -40,9 +40,9 @@ public class SparkLDA implements Serializable {
 	private Multimap<Integer, String> mapping;
 
 	@Autowired
-	private TopicsWordsDao topicsWordsDao;
+	private TopicsDao topicsDao;
 	@Autowired
-	private TopicArticleDao topicArticleDao;
+	private TopicsArticlesDao topicsArticlesDao;
 
 	@Autowired
 	private ArticlesReader articlesReader;
@@ -61,13 +61,13 @@ public class SparkLDA implements Serializable {
 
 		// TopicsDescriptionWriter.writeToFile(d, mapping);
 		logger.info("Saving Data to database");
-		topicsWordsDao.deleteAll();
-		topicsWordsDao.insert(TopicsDescriptionWriter.convertToTopicWord(d, mapping));
+		topicsDao.deleteAll();
+		topicsDao.insert(TopicsDescriptionWriter.convertToTopic(d, mapping));
 
-		topicArticleDao.deleteAll();
+		topicsArticlesDao.deleteAll();
 		// Opisanie dokumentow za pomoca topicow wraz z wagami
 		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
-		topicArticleDao.insert(TopicsDistributionWriter.convertToTopicArticle(td));
+		topicsArticlesDao.insert(TopicsDistributionWriter.convertToTopicArticle(td));
 
 		// TopicsDistributionWriter.writeToFile(td);
 
@@ -77,7 +77,6 @@ public class SparkLDA implements Serializable {
 	public JavaPairRDD<Long, Vector> bulidCorpus() {
 		// Wczytanie danych (artykulow) z bazy danych
 		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
-
 		data = data.filter(f -> f.getText() != null);
 
 		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2

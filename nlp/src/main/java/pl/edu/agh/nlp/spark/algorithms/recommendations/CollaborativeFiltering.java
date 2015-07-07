@@ -9,6 +9,7 @@ import org.apache.spark.mllib.recommendation.Rating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import pl.edu.agh.nlp.exceptions.AbsentModelException;
 import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
 import scala.Tuple2;
 
@@ -51,8 +52,11 @@ public class CollaborativeFiltering {
 		System.out.println("Mean Squared Error = " + MSE);
 	}
 
-	public Rating[] recommend(Integer userId) {
-		return model.recommendProducts(userId, 10);
+	public Rating[] recommend(Integer userId) throws AbsentModelException {
+		if (model != null)
+			return model.recommendProducts(userId, 10);
+		else
+			throw new AbsentModelException();
 	}
 
 }

@@ -22,7 +22,6 @@ public class Tokenizer implements Serializable {
 	private final static String STOP_WORDS_FILE = "stopwords.txt";
 
 	public Tokenizer() {
-
 		stemmer = new Stemmer();
 		try {
 			stopWords = Files.readAllLines(Paths.get(new ClassPathResource(STOP_WORDS_FILE).getFile().getAbsolutePath()));

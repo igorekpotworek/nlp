@@ -25,7 +25,7 @@ public class ArticlesDaoHbase extends NamedParameterJdbcDaoSupport implements Ar
 		return null;
 	}
 
-	public Article findById(final Long id) {
+	public Article findById(final Integer id) {
 		String sql = "select id, title, intro, text from articles where id=:id";
 		SqlParameterSource parameters = new MapSqlParameterSource("id", id);
 		return DataAccessUtils.singleResult(getNamedParameterJdbcTemplate().query(sql, parameters,

@@ -47,7 +47,7 @@ intro varchar,
 text varchar,
 category varchar);
 
-create table topics_words (
+create table topics (
 topicId integer,
 word varchar,
 weight double precision);
@@ -63,14 +63,13 @@ firstname varchar,
 lastname varchar
 );
 
-create table users_articles (
+create table rates (
 userId integer,
 articleId integer,
 rating double precision
 );
 
 CREATE INDEX articles_category_index ON articles (category);
-
 
 int rank = 50;
 int numIterations = 10;
@@ -92,4 +91,6 @@ int rank = 200;
 int numIterations = 20;
 Mean Squared Error = 0.008174461249078665
 
-jak stackoverflo xss zwiekszac
+jak stackoverflow xss zwiekszac
+przemyslec zmiany nazw tabel
+rzucac exception via rest

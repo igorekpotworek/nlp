@@ -1,5 +1,7 @@
 package pl.edu.agh.nlp.spark.jdbc;
 
+import java.io.Serializable;
+
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -14,7 +16,12 @@ import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.spark.SparkContextFactory;
 
 @Service
-public class ArticlesReader {
+public class ArticlesReader implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7360854451347488378L;
 
 	@Autowired
 	private NlpServiceConnectionFactory nlpServiceConnectionFactory;

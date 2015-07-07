@@ -5,10 +5,10 @@ import java.util.concurrent.Future;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
@@ -25,8 +25,8 @@ public class ClassificationController {
 	@Autowired
 	private SparkClassification sparkClassification;
 
-	@RequestMapping(value = "/classify")
-	public Category classifyArticleById(@RequestParam(value = "articleId") Long articleId) throws AbsentModelException {
+	@RequestMapping(value = "/classify/{articleId}")
+	public Category classifyArticleById(@PathVariable Integer articleId) throws AbsentModelException {
 		Article article = articlesDao.findById(articleId);
 		try {
 			return sparkClassification.predictCategory(article.getText());

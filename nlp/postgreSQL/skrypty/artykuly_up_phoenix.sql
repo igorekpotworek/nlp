@@ -6,7 +6,7 @@ text VARCHAR,
 category VARCHAR
 );
 
-create table topics_words (
+create table topics (
 topicId INTEGER,
 word VARCHAR,
 weight DOUBLE,
@@ -27,7 +27,7 @@ firstname VARCHAR,
 lastname VARCHAR
 );
 
-create table users_articles (
+create table rates (
 userId INTEGER,
 articleId INTEGER,
 rating DOUBLE,

@@ -31,7 +31,7 @@ public class TopicsDistributionWriter {
 		for (Tuple2<Object, Vector> tuple : td) {
 			double[] wektor = tuple._2().toArray();
 			for (int i = 0; i < wektor.length; i++)
-				topicArticles.add(new TopicArticle((long) tuple._1(), i, wektor[i]));
+				topicArticles.add(new TopicArticle((int) tuple._1(), i, wektor[i]));
 		}
 
 		return topicArticles;

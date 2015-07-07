@@ -1,9 +1,5 @@
 package pl.edu.agh.nlp.utils;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -69,11 +65,6 @@ public class DataCleaner {
 		logger.info("Cleaning complete: " + articles.size() + " changed articles");
 		articlesDao.updateBatch(articles);
 		logger.info("Data saved");
-	}
-
-	public static void main(String[] args) throws IOException {
-		String s = new String(Files.readAllBytes(Paths.get("test.txt")), StandardCharsets.UTF_8);
-		System.out.println(clean(s));
 	}
 
 }

@@ -10,7 +10,7 @@ public interface ArticlesDao {
 
 	public List<Article> searchArticles(final String sentence);
 
-	public Article findById(final Long id);
+	public Article findById(final Integer id);
 
 	public List<Article> findAll();
 

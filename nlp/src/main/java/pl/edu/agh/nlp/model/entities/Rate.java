@@ -1,6 +1,6 @@
 package pl.edu.agh.nlp.model.entities;
 
-public class UserArticle {
+public class Rate {
 	private Integer userId;
 	private Integer articleId;
 	private Double rating;
