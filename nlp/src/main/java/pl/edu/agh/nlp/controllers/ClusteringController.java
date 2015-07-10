@@ -2,11 +2,8 @@ package pl.edu.agh.nlp.controllers;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Future;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,11 +35,10 @@ public class ClusteringController {
 		return topicsDao.findAll();
 	}
 
-	@Async
 	@RequestMapping(value = "/topics/rebuild")
-	public Future<String> rebuildModel() throws IOException {
-		sparkLDA.bulidModel();
-		return new AsyncResult<String>("ok");
+	public String rebuildModel() throws IOException {
+		sparkLDA.buildModelAsync();
+		return "ok";
 	}
 
 }

@@ -1,11 +1,8 @@
 package pl.edu.agh.nlp.controllers;
 
 import java.util.List;
-import java.util.concurrent.Future;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,10 +26,9 @@ public class RelatedArticlesController {
 		return null;
 	}
 
-	@Async
 	@RequestMapping(value = "/relatedArticles/rebuild")
-	public Future<String> rebuildModel() {
-		similarArticlesFinder.builidModel();
-		return new AsyncResult<String>("ok");
+	public String rebuildModel() {
+		similarArticlesFinder.buildModelAsync();
+		return "ok";
 	}
 }

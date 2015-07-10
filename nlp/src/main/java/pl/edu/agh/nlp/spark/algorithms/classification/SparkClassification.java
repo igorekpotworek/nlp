@@ -14,6 +14,7 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
@@ -47,7 +48,7 @@ public class SparkClassification implements Serializable {
 	@Autowired
 	private ArticlesReader articlesReader;
 
-	public void builidModel() {
+	public void buildModel() {
 		// Wczytujemy artukuly z bazy danych
 		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
 
@@ -103,6 +104,11 @@ public class SparkClassification implements Serializable {
 			return Category.fromInt((int) model.predict(idfModel.transform(hashingTF.transform(tokenizer.tokenize(text)))));
 		else
 			throw new AbsentModelException();
+	}
+
+	@Async
+	public void buildModelAsync() {
+		buildModel();
 	}
 
 }

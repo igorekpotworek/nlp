@@ -1,10 +1,6 @@
 package pl.edu.agh.nlp.controllers;
 
-import java.util.concurrent.Future;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,7 +27,7 @@ public class ClassificationController {
 		try {
 			return sparkClassification.predictCategory(article.getText());
 		} catch (AbsentModelException e) {
-			sparkClassification.builidModel();
+			sparkClassification.buildModel();
 			return sparkClassification.predictCategory(article.getText());
 		}
 	}
@@ -41,16 +37,15 @@ public class ClassificationController {
 		try {
 			return sparkClassification.predictCategory(article.getText());
 		} catch (AbsentModelException e) {
-			sparkClassification.builidModel();
+			sparkClassification.buildModel();
 			return sparkClassification.predictCategory(article.getText());
 		}
 	}
 
-	@Async
 	@RequestMapping(value = "/classify/rebuild")
-	public Future<String> rebuildModel() {
-		sparkClassification.builidModel();
-		return new AsyncResult<String>("ok");
+	public String rebuildModel() {
+		sparkClassification.buildModelAsync();
+		return "ok";
 	}
 
 }

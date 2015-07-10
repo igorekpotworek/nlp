@@ -53,9 +53,10 @@ word varchar,
 weight double precision);
 
 create table topics_articles (
-articleId integer,
+articleId integer REFERENCES articles (id),
 topicId integer,
-weight double precision);
+weight double precision
+);
 
 create table users (
 id SERIAL PRIMARY KEY,
@@ -64,8 +65,8 @@ lastname varchar
 );
 
 create table rates (
-userId integer,
-articleId integer,
+userId integer REFERENCES users (id),
+articleId integer REFERENCES articles (id),
 rating double precision
 );
 
@@ -92,5 +93,4 @@ int numIterations = 20;
 Mean Squared Error = 0.008174461249078665
 
 jak stackoverflow xss zwiekszac
-przemyslec zmiany nazw tabel
 rzucac exception via rest

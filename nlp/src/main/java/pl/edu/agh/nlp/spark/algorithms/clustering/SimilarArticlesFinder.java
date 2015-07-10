@@ -25,6 +25,7 @@ import org.apache.spark.mllib.feature.Normalizer;
 import org.apache.spark.mllib.linalg.BLAS;
 import org.apache.spark.mllib.linalg.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.model.entities.Article;
@@ -53,7 +54,7 @@ public class SimilarArticlesFinder implements Serializable {
 	@Autowired
 	private ArticlesReader articlesReader;
 
-	public void builidModel() {
+	public void buildModel() {
 		// Wczytanie danych (artykulow) z bazy danych
 		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
 		data = data.filter(f -> f.getText() != null);
@@ -149,5 +150,10 @@ public class SimilarArticlesFinder implements Serializable {
 		String text = new String(encoded, StandardCharsets.UTF_8);
 		System.out.println(text);
 		similarArticlesFinder.find(text);
+	}
+
+	@Async
+	public void buildModelAsync() {
+		buildModel();
 	}
 }

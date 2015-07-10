@@ -14,6 +14,7 @@ import org.apache.spark.mllib.feature.IDF;
 import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.model.dao.TopicsArticlesDao;
@@ -47,7 +48,7 @@ public class SparkLDA implements Serializable {
 	@Autowired
 	private ArticlesReader articlesReader;
 
-	public void bulidModel() throws IOException {
+	public void buildModel() throws IOException {
 
 		// Budowa modelu
 		JavaPairRDD<Long, Vector> corpus = bulidCorpus();
@@ -95,5 +96,10 @@ public class SparkLDA implements Serializable {
 		JavaPairRDD<Long, Vector> tfidfData = tfData.mapValues(v -> idfModel.transform(v));
 		logger.info("LDA corpus created");
 		return tfidfData;
+	}
+
+	@Async
+	public void buildModelAsync() throws IOException {
+		buildModel();
 	}
 }
