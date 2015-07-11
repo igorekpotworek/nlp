@@ -19,16 +19,22 @@ public class CollaborativeFiltering {
 	private MatrixFactorizationModel model;
 	@Autowired
 	private ArticlesReader articlesReader;
+	private final static double[] splitTable = { 0.6, 0.4 };
 
 	public void buildModel() {
 		JavaRDD<Rating> ratings = articlesReader.readArticlesHistoryToRDD();
-		// Budowa modelu
 		// im wyzszy tym lepiej
 		int rank = 50;
 		// im wyzszy tym lepiej
 		int numIterations = 10;
-		model = ALS.train(JavaRDD.toRDD(ratings), rank, numIterations, 0.01);
-		evaluateModel(ratings);
+
+		JavaRDD<Rating>[] splits = ratings.randomSplit(splitTable);
+
+		JavaRDD<Rating> training = splits[0];
+		JavaRDD<Rating> test = splits[1];
+
+		model = ALS.train(JavaRDD.toRDD(training), rank, numIterations, 0.01);
+		evaluateModel(test);
 	}
 
 	public void evaluateModel(JavaRDD<Rating> evaluateData) {

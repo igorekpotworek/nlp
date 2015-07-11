@@ -26,7 +26,7 @@ public class PersonDetectionController {
 	private AsyncController asyncController;
 
 	@RequestMapping(value = "/ner/{articleId}")
-	public ResponseEntity<List<String>> classifyArticleById(@PathVariable Integer articleId) {
+	public ResponseEntity<List<String>> findPersons(@PathVariable Integer articleId) {
 		try {
 			Article article = articlesDao.findById(articleId);
 			if (article != null)
@@ -39,7 +39,7 @@ public class PersonDetectionController {
 	}
 
 	@RequestMapping(value = "/ner", method = RequestMethod.POST)
-	public ResponseEntity<List<String>> classifyArticle(@RequestBody Article article) {
+	public ResponseEntity<List<String>> findPersons(@RequestBody Article article) {
 		try {
 			return new ResponseEntity<List<String>>(personDetector.detect(article.getText()), HttpStatus.OK);
 		} catch (AbsentModelException e) {

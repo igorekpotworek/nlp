@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.ner.PersonDetector;
 import pl.edu.agh.nlp.spark.algorithms.classification.SparkClassification;
-import pl.edu.agh.nlp.spark.algorithms.clustering.SimilarArticlesFinder;
 import pl.edu.agh.nlp.spark.algorithms.lda.SparkLDA;
 import pl.edu.agh.nlp.spark.algorithms.recommendations.CollaborativeFiltering;
 
@@ -18,8 +17,7 @@ public class AsyncController {
 	private PersonDetector personDetector;
 	@Autowired
 	private SparkLDA sparkLDA;
-	@Autowired
-	private SimilarArticlesFinder similarArticlesFinder;
+
 	@Autowired
 	private CollaborativeFiltering collaborativeFiltering;
 
@@ -38,10 +36,6 @@ public class AsyncController {
 		sparkLDA.buildModel();
 	}
 
-	@Async
-	public void buildSimilarArticlesFinderModel() {
-		similarArticlesFinder.buildModel();
-	}
 
 	@Async
 	public void buildRecommenderModel() {
