@@ -7,7 +7,6 @@ import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 import org.apache.spark.mllib.recommendation.Rating;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
@@ -22,7 +21,6 @@ public class CollaborativeFiltering {
 	private ArticlesReader articlesReader;
 
 	public void buildModel() {
-
 		JavaRDD<Rating> ratings = articlesReader.readArticlesHistoryToRDD();
 		// Budowa modelu
 		// im wyzszy tym lepiej
@@ -31,7 +29,6 @@ public class CollaborativeFiltering {
 		int numIterations = 10;
 		model = ALS.train(JavaRDD.toRDD(ratings), rank, numIterations, 0.01);
 		evaluateModel(ratings);
-
 	}
 
 	public void evaluateModel(JavaRDD<Rating> evaluateData) {
@@ -58,11 +55,6 @@ public class CollaborativeFiltering {
 			return model.recommendProducts(userId, 10);
 		else
 			throw new AbsentModelException();
-	}
-
-	@Async
-	public void buildModelAsync() {
-		buildModel();
 	}
 
 }

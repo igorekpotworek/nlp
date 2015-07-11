@@ -1,6 +1,8 @@
 package pl.edu.agh.nlp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,13 +19,14 @@ public class ArticlesMaintanceController {
 	private ArticlesDao articlesDao;
 
 	@RequestMapping(value = "/add/article", method = RequestMethod.POST)
-	public void addArticle(@RequestBody Article article) {
+	public ResponseEntity<String> addArticle(@RequestBody Article article) {
 		articlesDao.insert(article);
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/find/{articleId}")
-	public Article findById(@PathVariable Integer articleId) {
-		return articlesDao.findById(articleId);
-	}
+	public ResponseEntity<Article> findById(@PathVariable Integer articleId) {
+		return new ResponseEntity<Article>(articlesDao.findById(articleId), HttpStatus.OK);
 
+	}
 }

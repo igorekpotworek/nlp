@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.apache.spark.mllib.recommendation.Rating;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,22 +21,29 @@ import pl.edu.agh.nlp.spark.algorithms.recommendations.CollaborativeFiltering;
 public class RecommenderController {
 	@Autowired
 	private CollaborativeFiltering collaborativeFiltering;
+	@Autowired
+	private AsyncController asyncController;
 
 	@RequestMapping(value = "/recommend/{userId}")
-	public List<Rate> getRecommendedArticles(@PathVariable Integer userId) throws AbsentModelException {
+	public ResponseEntity<List<Rate>> getRecommendedArticles(@PathVariable Integer userId) {
 		Rating[] r;
 		try {
 			r = collaborativeFiltering.recommend(userId);
 		} catch (AbsentModelException e) {
 			collaborativeFiltering.buildModel();
-			r = collaborativeFiltering.recommend(userId);
+			try {
+				r = collaborativeFiltering.recommend(userId);
+			} catch (AbsentModelException e1) {
+				return new ResponseEntity<List<Rate>>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
-		return Arrays.asList(r).stream().map(new RatingToRateConverter()).collect(Collectors.toList());
+		List<Rate> recommendedArticles = Arrays.asList(r).stream().map(new RatingToRateConverter()).collect(Collectors.toList());
+		return new ResponseEntity<List<Rate>>(recommendedArticles, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/recommend/rebuild")
-	public String rebuildModel() {
-		collaborativeFiltering.buildModelAsync();
-		return "ok";
+	public ResponseEntity<String> rebuildModel() {
+		asyncController.buildRecommenderModel();
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
 	}
 }

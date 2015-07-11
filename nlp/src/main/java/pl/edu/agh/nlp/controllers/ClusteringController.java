@@ -1,9 +1,10 @@
 package pl.edu.agh.nlp.controllers;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,27 +19,27 @@ import pl.edu.agh.nlp.spark.algorithms.lda.SparkLDA;
 public class ClusteringController {
 	@Autowired
 	private TopicsArticlesDao topicsArticlesDao;
-
 	@Autowired
 	private TopicsDao topicsDao;
-
 	@Autowired
 	private SparkLDA sparkLDA;
+	@Autowired
+	private AsyncController asyncController;
 
 	@RequestMapping(value = "/topics/article/{articleId}")
-	public List<TopicArticle> getTopicsOfArticle(@PathVariable Integer articleId) {
-		return topicsArticlesDao.findByTopicsByArticleId(articleId);
+	public ResponseEntity<List<TopicArticle>> getTopicsOfArticle(@PathVariable Integer articleId) {
+		return new ResponseEntity<List<TopicArticle>>(topicsArticlesDao.findByTopicsByArticleId(articleId), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/topics")
-	public List<Topic> getAllTopics() {
-		return topicsDao.findAll();
+	public ResponseEntity<List<Topic>> getAllTopics() {
+		return new ResponseEntity<List<Topic>>(topicsDao.findAll(), HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/topics/rebuild")
-	public String rebuildModel() throws IOException {
-		sparkLDA.buildModelAsync();
-		return "ok";
+	public ResponseEntity<String> rebuildModel() {
+		asyncController.buildLDAModelAsync();
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
 	}
 
 }

@@ -1,6 +1,8 @@
 package pl.edu.agh.nlp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,32 +22,44 @@ public class ClassificationController {
 	private ArticlesDao articlesDao;
 	@Autowired
 	private SparkClassification sparkClassification;
+	@Autowired
+	private AsyncController asyncController;
 
 	@RequestMapping(value = "/classify/{articleId}")
-	public Category classifyArticleById(@PathVariable Integer articleId) throws AbsentModelException {
+	public ResponseEntity<Category> classifyArticleById(@PathVariable Integer articleId) {
 		Article article = articlesDao.findById(articleId);
-		try {
-			return sparkClassification.predictCategory(article.getText());
-		} catch (AbsentModelException e) {
-			sparkClassification.buildModel();
-			return sparkClassification.predictCategory(article.getText());
-		}
+		if (article != null) {
+			try {
+				return new ResponseEntity<Category>(sparkClassification.predictCategory(article.getText()), HttpStatus.OK);
+			} catch (AbsentModelException e) {
+				sparkClassification.buildModel();
+				try {
+					return new ResponseEntity<Category>(sparkClassification.predictCategory(article.getText()), HttpStatus.OK);
+				} catch (AbsentModelException e1) {
+					return new ResponseEntity<Category>(HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
+		} else
+			return new ResponseEntity<Category>(HttpStatus.NOT_FOUND);
 	}
 
 	@RequestMapping(value = "/classify", method = RequestMethod.POST)
-	public Category classifyArticle(@RequestBody Article article) throws AbsentModelException {
+	public ResponseEntity<Category> classifyArticle(@RequestBody Article article) {
 		try {
-			return sparkClassification.predictCategory(article.getText());
+			return new ResponseEntity<Category>(sparkClassification.predictCategory(article.getText()), HttpStatus.OK);
 		} catch (AbsentModelException e) {
 			sparkClassification.buildModel();
-			return sparkClassification.predictCategory(article.getText());
+			try {
+				return new ResponseEntity<Category>(sparkClassification.predictCategory(article.getText()), HttpStatus.OK);
+			} catch (AbsentModelException e1) {
+				return new ResponseEntity<Category>(HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 		}
 	}
 
 	@RequestMapping(value = "/classify/rebuild")
-	public String rebuildModel() {
-		sparkClassification.buildModelAsync();
-		return "ok";
+	public ResponseEntity<String> rebuildModel() {
+		asyncController.buildClassificationModelAsync();
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
 	}
-
 }

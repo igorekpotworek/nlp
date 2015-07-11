@@ -1,6 +1,8 @@
 package pl.edu.agh.nlp.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,12 +22,16 @@ public class UsersMaintanceController {
 	private RatesDao ratesDao;
 
 	@RequestMapping(value = "/add/user", method = RequestMethod.POST)
-	public void addUser(@RequestBody User user) {
+	public ResponseEntity<String> addUser(@RequestBody User user) {
 		usersDao.insert(user);
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
+
 	}
 
 	@RequestMapping(value = "/add/rating", method = RequestMethod.POST)
-	public void addRating(@RequestBody Rate rate) {
+	public ResponseEntity<String> addRating(@RequestBody Rate rate) {
 		ratesDao.insert(rate);
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
+
 	}
 }

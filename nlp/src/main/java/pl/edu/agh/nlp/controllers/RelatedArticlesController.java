@@ -3,6 +3,8 @@ package pl.edu.agh.nlp.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,17 +20,19 @@ public class RelatedArticlesController {
 	private ArticlesDao articlesDao;
 	@Autowired
 	private SimilarArticlesFinder similarArticlesFinder;
+	@Autowired
+	private AsyncController asyncController;
 
 	@RequestMapping(value = "/relatedArticles/{articleId}")
-	public List<Article> getRelatedArticles(@PathVariable Integer articleId) {
+	public ResponseEntity<List<Article>> getRelatedArticles(@PathVariable Integer articleId) {
 		Article article = articlesDao.findById(articleId);
 
 		return null;
 	}
 
 	@RequestMapping(value = "/relatedArticles/rebuild")
-	public String rebuildModel() {
-		similarArticlesFinder.buildModelAsync();
-		return "ok";
+	public ResponseEntity<String> rebuildModel() {
+		asyncController.buildSimilarArticlesFinderModel();
+		return new ResponseEntity<String>("ok", HttpStatus.OK);
 	}
 }

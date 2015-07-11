@@ -6,14 +6,17 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import pl.edu.agh.nlp.model.entities.Topic;
 import scala.Tuple2;
 
 import com.google.common.collect.Multimap;
 
+@Service
 public class TopicsDescriptionWriter {
-	public static void writeToFile(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) throws FileNotFoundException,
-			UnsupportedEncodingException {
+	public void writeToFile(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) throws UnsupportedEncodingException,
+			FileNotFoundException {
 
 		PrintWriter writer = new PrintWriter("TOPICS_DESCRIPTION.txt", "UTF-8");
 		for (int i = 0; i < d.length; i++) {
@@ -25,7 +28,7 @@ public class TopicsDescriptionWriter {
 		writer.close();
 	}
 
-	public static List<Topic> convertToTopic(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) {
+	public List<Topic> convertToTopic(Tuple2<int[], double[]>[] d, Multimap<Integer, String> mapping) {
 
 		List<Topic> topicWords = new ArrayList<Topic>();
 		for (int i = 0; i < d.length; i++) {

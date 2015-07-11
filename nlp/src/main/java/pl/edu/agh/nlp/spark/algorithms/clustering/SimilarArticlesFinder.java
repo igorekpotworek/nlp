@@ -25,7 +25,6 @@ import org.apache.spark.mllib.feature.Normalizer;
 import org.apache.spark.mllib.linalg.BLAS;
 import org.apache.spark.mllib.linalg.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.model.entities.Article;
@@ -144,7 +143,7 @@ public class SimilarArticlesFinder implements Serializable {
 
 	public static void main(String[] args) throws IOException {
 		SimilarArticlesFinder similarArticlesFinder = new SimilarArticlesFinder();
-		similarArticlesFinder.builidModel();
+		similarArticlesFinder.buildModel();
 
 		byte[] encoded = Files.readAllBytes(Paths.get("plik.txt"));
 		String text = new String(encoded, StandardCharsets.UTF_8);
@@ -152,8 +151,4 @@ public class SimilarArticlesFinder implements Serializable {
 		similarArticlesFinder.find(text);
 	}
 
-	@Async
-	public void buildModelAsync() {
-		buildModel();
-	}
 }

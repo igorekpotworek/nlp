@@ -14,18 +14,16 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.regression.LabeledPoint;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.model.entities.Article.Category;
 import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
-import pl.edu.agh.nlp.utils.DataCleaner;
 import pl.edu.agh.nlp.utils.Tokenizer;
 import scala.Tuple2;
 
-import com.google.common.collect.Lists;
+import com.clearspring.analytics.util.Lists;
 
 @Service
 public class SparkClassification implements Serializable {
@@ -34,40 +32,26 @@ public class SparkClassification implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 92592979711690198L;
-
 	private static final Logger logger = Logger.getLogger(SparkClassification.class);
-
 	private final static double[] splitTable = { 0.6, 0.4 };
 
-	private static final Tokenizer tokenizer = new Tokenizer();
+	@Autowired
+	private Tokenizer tokenizer;
+	@Autowired
+	private ArticlesReader articlesReader;
+
 	private static final HashingTF hashingTF = new HashingTF(2000000);
 
 	private NaiveBayesModel model;
 	private IDFModel idfModel;
 
-	@Autowired
-	private ArticlesReader articlesReader;
-
 	public void buildModel() {
-		// Wczytujemy artukuly z bazy danych
-		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
-
-		// Filtrujemy tylko te z tekstem i kategoria
-		data = data.filter(a -> a.getText() != null && !a.getText().isEmpty()).filter(a -> a.getCategory() != null);
-
-		// Obliczamy dzial o najmniejszej liczbie reprezentantow
-		final Long classSize = data.keyBy(p -> p.getCategory()).countByKey().values().stream().mapToLong(p -> (long) p).min().getAsLong();
-
-		// Wybieramy z artykulow po rowno z kazdej grupy
-		data = data.groupBy(p -> p.getCategory()).map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue())).flatMap(f -> f);
-
-		System.out.println(data.count());
+		JavaRDD<Article> data = loadAndPrepareData();
 		// Budowa modelu idf
 		idfModel = builidIDFModel(data);
-
 		// Zrzutowanie publikacji na wektory
 		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(), idfModel.transform(hashingTF
-				.transform(tokenizer.tokenize(DataCleaner.clean(a.getText()))))));
+				.transform(tokenizer.tokenize(a.getText())))));
 
 		// Dzielimy dane na zbior treningowy oraz testowy
 		JavaRDD<LabeledPoint>[] splits = labeledPoints.randomSplit(splitTable);
@@ -80,21 +64,34 @@ public class SparkClassification implements Serializable {
 		evaluateModel(test);
 	}
 
-	public IDFModel builidIDFModel(JavaRDD<Article> data) {
+	private JavaRDD<Article> loadAndPrepareData() {
+		// Wczytujemy artukuly z bazy danych
+		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
+		// Filtrujemy tylko te z tekstem i kategoria
+		data = data.filter(a -> a.getText() != null && !a.getText().isEmpty()).filter(a -> a.getCategory() != null);
+		// Obliczamy dzial o najmniejszej liczbie reprezentantow
+		final Long classSize = data.keyBy(p -> p.getCategory()).countByKey().values().stream().mapToLong(p -> (long) p).min().getAsLong();
+		// Wybieramy z artykulow po rowno z kazdej grupy
+		return data.groupBy(p -> p.getCategory()).map(t -> Lists.newArrayList(t._2).subList(0, classSize.intValue())).flatMap(f -> f);
+	}
+
+	private IDFModel builidIDFModel(JavaRDD<Article> data) {
+		logger.info("Start building IDF model");
 		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
 		JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
 		return new IDF().fit(tfData);
 	}
 
-	public double evaluateModel(JavaRDD<LabeledPoint> test) {
+	private double evaluateModel(JavaRDD<LabeledPoint> test) {
 		// Ewaluacja modelu
+		logger.info("Start evaluating model");
 		JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p.features()), p
 				.label()));
 		long accuracy = predictionAndLabel.filter(pl -> {
 			return pl._1().equals(pl._2());
 		}).count();
 		double effectiveness = accuracy / (double) test.count();
-		logger.info("Skutecznosc: " + effectiveness);
+		logger.info("Effectiveness: " + effectiveness);
 		return effectiveness;
 
 	}
@@ -104,11 +101,6 @@ public class SparkClassification implements Serializable {
 			return Category.fromInt((int) model.predict(idfModel.transform(hashingTF.transform(tokenizer.tokenize(text)))));
 		else
 			throw new AbsentModelException();
-	}
-
-	@Async
-	public void buildModelAsync() {
-		buildModel();
 	}
 
 }
