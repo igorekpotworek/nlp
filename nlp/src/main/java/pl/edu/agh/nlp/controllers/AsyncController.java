@@ -11,13 +11,13 @@ import pl.edu.agh.nlp.spark.algorithms.recommendations.CollaborativeFiltering;
 
 @Service
 public class AsyncController {
+
 	@Autowired
 	private SparkClassification sparkClassification;
 	@Autowired
 	private PersonDetector personDetector;
 	@Autowired
 	private SparkLDA sparkLDA;
-
 	@Autowired
 	private CollaborativeFiltering collaborativeFiltering;
 
@@ -35,7 +35,6 @@ public class AsyncController {
 	public void buildLDAModelAsync() {
 		sparkLDA.buildModel();
 	}
-
 
 	@Async
 	public void buildRecommenderModel() {

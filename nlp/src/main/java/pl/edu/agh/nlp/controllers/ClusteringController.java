@@ -13,7 +13,6 @@ import pl.edu.agh.nlp.model.dao.TopicsArticlesDao;
 import pl.edu.agh.nlp.model.dao.TopicsDao;
 import pl.edu.agh.nlp.model.entities.Topic;
 import pl.edu.agh.nlp.model.entities.TopicArticle;
-import pl.edu.agh.nlp.spark.algorithms.lda.SparkLDA;
 
 @RestController
 public class ClusteringController {
@@ -21,8 +20,6 @@ public class ClusteringController {
 	private TopicsArticlesDao topicsArticlesDao;
 	@Autowired
 	private TopicsDao topicsDao;
-	@Autowired
-	private SparkLDA sparkLDA;
 	@Autowired
 	private AsyncController asyncController;
 

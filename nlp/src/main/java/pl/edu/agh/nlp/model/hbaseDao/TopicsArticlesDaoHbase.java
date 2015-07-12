@@ -1,5 +1,6 @@
 package pl.edu.agh.nlp.model.hbaseDao;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,12 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import pl.edu.agh.nlp.model.dao.TopicsArticlesDao;
 import pl.edu.agh.nlp.model.entities.TopicArticle;
 
-public class TopicsArticlesDaoHbase extends NamedParameterJdbcDaoSupport implements TopicsArticlesDao {
+public class TopicsArticlesDaoHbase extends NamedParameterJdbcDaoSupport implements TopicsArticlesDao, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5651941887808310471L;
 
 	public void insert(final List<TopicArticle> topics) {
 		String sql = "upsert into topics_articles(articleId, topicId, weight) values (:articleId, :topicId, :weight)";

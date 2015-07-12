@@ -19,11 +19,11 @@
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsWordsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsDaoPostgresql">
+	<bean id="topicsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicArticleDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsArticlesDaoPostgresql">
+	<bean id="topicsArticlesDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsArticlesDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
@@ -31,7 +31,7 @@
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 		
-	<bean id="usersArticlesDao" class="pl.edu.agh.nlp.model.postgresqlDao.RatesDaoPostgresql">
+	<bean id="ratesDao" class="pl.edu.agh.nlp.model.postgresqlDao.RatesDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	

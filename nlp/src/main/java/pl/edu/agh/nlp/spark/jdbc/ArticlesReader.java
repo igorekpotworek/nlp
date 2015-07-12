@@ -36,7 +36,7 @@ public class ArticlesReader implements Serializable {
 	public JavaRDD<Rating> readArticlesHistoryToRDD() {
 		SparkContext sc = SparkContextFactory.getSparkContext();
 		JavaSparkContext jsc = new JavaSparkContext(sc);
-		return JdbcRDD.create(jsc, nlpServiceConnectionFactory, "select * from users_articles where  ? <= userId AND userId <= ?", 1, 1000,
-				2, new RatingMapper());
+		return JdbcRDD.create(jsc, nlpServiceConnectionFactory, "select * from rates  where  ? <= userId AND userId <= ?", 1, 6040, 4,
+				new RatingMapper());
 	}
 }

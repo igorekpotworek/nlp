@@ -19,7 +19,7 @@
 	<context:annotation-config />
 
 	<import resource="postgresql-config.xml" />
-	<!-- <import resource="phoenix-config.xml" /> -->
+	<!--  <import resource="phoenix-config.xml" /> -->
 	
 
 </beans>

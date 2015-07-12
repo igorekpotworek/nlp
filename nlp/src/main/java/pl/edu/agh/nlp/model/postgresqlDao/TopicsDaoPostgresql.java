@@ -1,5 +1,6 @@
 package pl.edu.agh.nlp.model.postgresqlDao;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -10,7 +11,12 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import pl.edu.agh.nlp.model.dao.TopicsDao;
 import pl.edu.agh.nlp.model.entities.Topic;
 
-public class TopicsDaoPostgresql extends NamedParameterJdbcDaoSupport implements TopicsDao {
+public class TopicsDaoPostgresql extends NamedParameterJdbcDaoSupport implements TopicsDao, Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3874819645035688023L;
+
 	public void insert(final List<Topic> topicsWords) {
 		String sql = "insert into topics(topicId, word, weight) values (:topicId, :word, :weight)";
 		SqlParameterSource[] params = SqlParameterSourceUtils.createBatch(topicsWords.toArray());

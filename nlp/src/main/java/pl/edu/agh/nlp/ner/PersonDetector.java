@@ -14,15 +14,16 @@ import java.util.List;
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.NameSample;
 import opennlp.tools.namefind.NameSampleDataStream;
+import opennlp.tools.namefind.TokenNameFinderEvaluator;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.util.ObjectStream;
 import opennlp.tools.util.PlainTextByLineStream;
 import opennlp.tools.util.Span;
+import opennlp.tools.util.eval.FMeasure;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
@@ -33,6 +34,8 @@ public class PersonDetector {
 
 	private static final String MODEL_FILE_NAME = "pl-ner-person.bin";
 	private static final String MODEL_TRAIN_FILE_NAME = "pl-ner-person.train";
+	private static final String MODEL_TEST_FILE_NAME = "pl-ner-person.train";
+
 	private static final Logger logger = Logger.getLogger(PersonDetector.class);
 	private NameFinderME nameFinder;
 
@@ -61,13 +64,14 @@ public class PersonDetector {
 		ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream);
 		try {
 			TokenNameFinderModel model = NameFinderME.train("pl", "person", sampleStream, Collections.emptyMap());
-			try (OutputStream modelOut = new BufferedOutputStream(new FileOutputStream(MODEL_TRAIN_FILE_NAME))) {
+			try (OutputStream modelOut = new BufferedOutputStream(new FileOutputStream(MODEL_FILE_NAME))) {
 				model.serialize(modelOut);
 			}
 			nameFinder = new NameFinderME(model);
 		} catch (IOException e) {
 			logger.error("Model Training Failed", e);
 		}
+		evaluateModel(nameFinder);
 	}
 
 	public List<String> detect(String document) throws AbsentModelException {
@@ -93,8 +97,18 @@ public class PersonDetector {
 		}
 	}
 
-	@Async
-	public void buildModelAsync() {
-		buildModel();
+	public void evaluateModel(NameFinderME nameFinder) {
+		try {
+			ObjectStream<String> lineStream = new PlainTextByLineStream(new ClassPathResource(MODEL_TEST_FILE_NAME).getInputStream(),
+					Charset.forName("UTF-8"));
+			ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream);
+			TokenNameFinderEvaluator evaluator = new TokenNameFinderEvaluator(nameFinder);
+			evaluator.evaluate(sampleStream);
+			FMeasure result = evaluator.getFMeasure();
+			System.out.println(result.toString());
+		} catch (IOException e) {
+			logger.error("Model Evaluating Failed", e);
+
+		}
 	}
 }

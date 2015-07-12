@@ -33,7 +33,7 @@ public class SparkClassification implements Serializable {
 	 */
 	private static final long serialVersionUID = 92592979711690198L;
 	private static final Logger logger = Logger.getLogger(SparkClassification.class);
-	private final static double[] splitTable = { 0.6, 0.4 };
+	private final static double[] splitTable = { 0.7, 0.3 };
 
 	@Autowired
 	private Tokenizer tokenizer;
@@ -46,21 +46,34 @@ public class SparkClassification implements Serializable {
 	private IDFModel idfModel;
 
 	public void buildModel() {
+		long time1 = System.currentTimeMillis();
 		JavaRDD<Article> data = loadAndPrepareData();
+		long time2 = System.currentTimeMillis();
+		long buildTime = (time2 - time1);
+		logger.info("Time of loading and preparing data: " + buildTime + "ms");
+
+		time1 = System.currentTimeMillis();
 		// Budowa modelu idf
 		idfModel = builidIDFModel(data);
 		// Zrzutowanie publikacji na wektory
 		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(), idfModel.transform(hashingTF
 				.transform(tokenizer.tokenize(a.getText())))));
+		time2 = System.currentTimeMillis();
+		buildTime = (time2 - time1);
+		logger.info("Time of building TFIDF model: " + buildTime + "ms");
 
 		// Dzielimy dane na zbior treningowy oraz testowy
 		JavaRDD<LabeledPoint>[] splits = labeledPoints.randomSplit(splitTable);
-
 		JavaRDD<LabeledPoint> training = splits[0];
 		JavaRDD<LabeledPoint> test = splits[1];
 
+		time1 = System.currentTimeMillis();
 		// Budowa modelu
 		model = NaiveBayes.train(training.rdd());
+		time2 = System.currentTimeMillis();
+		buildTime = (time2 - time1);
+		logger.info("Time of building TFIDF model: " + buildTime + "ms");
+
 		evaluateModel(test);
 	}
 
@@ -76,7 +89,6 @@ public class SparkClassification implements Serializable {
 	}
 
 	private IDFModel builidIDFModel(JavaRDD<Article> data) {
-		logger.info("Start building IDF model");
 		JavaRDD<List<String>> javaRdd = data.map(r -> tokenizer.tokenize(r.getText())).filter(a -> !a.isEmpty());
 		JavaRDD<Vector> tfData = hashingTF.transform(javaRdd);
 		return new IDF().fit(tfData);
@@ -93,7 +105,6 @@ public class SparkClassification implements Serializable {
 		double effectiveness = accuracy / (double) test.count();
 		logger.info("Effectiveness: " + effectiveness);
 		return effectiveness;
-
 	}
 
 	public Category predictCategory(String text) throws AbsentModelException {
