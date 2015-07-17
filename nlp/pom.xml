@@ -234,6 +234,13 @@
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-analyzers-morfologik</artifactId>
 			<version>4.10.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>lucene-core</artifactId>
+					<groupId>org.apache.lucene</groupId>
+				</exclusion>
+			</exclusions>
+
 		</dependency>
 
 		<!-- OpenNLP -->
@@ -241,6 +248,12 @@
 			<groupId>org.apache.opennlp</groupId>
 			<artifactId>opennlp-tools</artifactId>
 			<version>1.5.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>1.5.2</version>
 		</dependency>
 
 	</dependencies>

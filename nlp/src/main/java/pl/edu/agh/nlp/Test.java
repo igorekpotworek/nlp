@@ -18,4 +18,5 @@ public class Test {
 		// System.out.println(context.getBean(PersonDetector.class).detect(FileUtils.readFileToString(new File("test.txt"))));
 
 	}
+
 }
