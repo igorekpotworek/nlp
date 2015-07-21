@@ -1,6 +1,7 @@
 package pl.edu.agh.nlp.spark.algorithms.classification;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -16,14 +17,14 @@ import org.apache.spark.mllib.regression.LabeledPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.clearspring.analytics.util.Lists;
+
 import pl.edu.agh.nlp.exceptions.AbsentModelException;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.model.entities.Article.Category;
 import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
 import pl.edu.agh.nlp.utils.Tokenizer;
 import scala.Tuple2;
-
-import com.clearspring.analytics.util.Lists;
 
 @Service
 public class SparkClassification implements Serializable {
@@ -33,7 +34,7 @@ public class SparkClassification implements Serializable {
 	 */
 	private static final long serialVersionUID = 92592979711690198L;
 	private static final Logger logger = Logger.getLogger(SparkClassification.class);
-	private final static double[] splitTable = { 0.7, 0.3 };
+	private final static double[] splitTable = { 0.6, 0.2, 0.2 };
 
 	@Autowired
 	private Tokenizer tokenizer;
@@ -56,8 +57,8 @@ public class SparkClassification implements Serializable {
 		// Budowa modelu idf
 		idfModel = builidIDFModel(data);
 		// Zrzutowanie publikacji na wektory
-		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(), idfModel.transform(hashingTF
-				.transform(tokenizer.tokenize(a.getText())))));
+		JavaRDD<LabeledPoint> labeledPoints = data.map(a -> new LabeledPoint(a.getCategory().getValue(),
+				idfModel.transform(hashingTF.transform(tokenizer.tokenize(a.getText())))));
 		time2 = System.currentTimeMillis();
 		buildTime = (time2 - time1);
 		logger.info("Time of building TFIDF model: " + buildTime + "ms");
@@ -66,15 +67,19 @@ public class SparkClassification implements Serializable {
 		JavaRDD<LabeledPoint>[] splits = labeledPoints.randomSplit(splitTable);
 		JavaRDD<LabeledPoint> training = splits[0];
 		JavaRDD<LabeledPoint> test = splits[1];
+		JavaRDD<LabeledPoint> validation = splits[2];
+
+		// Walidacja parametrow
+		double bestLambda = validateModels(training, validation);
 
 		time1 = System.currentTimeMillis();
 		// Budowa modelu
-		model = NaiveBayes.train(training.rdd());
+		model = NaiveBayes.train(training.rdd(), bestLambda);
 		time2 = System.currentTimeMillis();
 		buildTime = (time2 - time1);
-		logger.info("Time of building TFIDF model: " + buildTime + "ms");
+		logger.info("Time of building Naive Bayes model: " + buildTime + "ms");
 
-		evaluateModel(test);
+		evaluateModel(model, test);
 	}
 
 	private JavaRDD<Article> loadAndPrepareData() {
@@ -94,11 +99,30 @@ public class SparkClassification implements Serializable {
 		return new IDF().fit(tfData);
 	}
 
-	private double evaluateModel(JavaRDD<LabeledPoint> test) {
+	private double validateModels(JavaRDD<LabeledPoint> training, JavaRDD<LabeledPoint> validation) {
+		List<Double> lambdas = Arrays.asList(0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 50.0);
+		double bestValidationEffectiveness = 0.0;
+		double bestLambda = -1.0;
+
+		for (double lambda : lambdas) {
+			NaiveBayesModel validatedModel = NaiveBayes.train(training.rdd(), lambda);
+			double validationEffectiveness = evaluateModel(validatedModel, validation);
+			logger.info("Effectiveness  (validation) = " + validationEffectiveness + " for the model trained with lambda = " + lambda);
+
+			if (validationEffectiveness > bestValidationEffectiveness) {
+				bestValidationEffectiveness = validationEffectiveness;
+				bestLambda = lambda;
+			}
+		}
+		logger.info("The best model was trained with lambda = " + bestLambda);
+		return bestLambda;
+	}
+
+	private double evaluateModel(NaiveBayesModel validatedModel, JavaRDD<LabeledPoint> test) {
 		// Ewaluacja modelu
 		logger.info("Start evaluating model");
-		JavaPairRDD<Double, Double> predictionAndLabel = test.mapToPair(p -> new Tuple2<Double, Double>(model.predict(p.features()), p
-				.label()));
+		JavaPairRDD<Double, Double> predictionAndLabel = test
+				.mapToPair(p -> new Tuple2<Double, Double>(validatedModel.predict(p.features()), p.label()));
 		long accuracy = predictionAndLabel.filter(pl -> {
 			return pl._1().equals(pl._2());
 		}).count();

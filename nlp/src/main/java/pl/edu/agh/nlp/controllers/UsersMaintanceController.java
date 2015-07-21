@@ -23,6 +23,7 @@ public class UsersMaintanceController {
 
 	@RequestMapping(value = "/add/user", method = RequestMethod.POST)
 	public ResponseEntity<String> addUser(@RequestBody User user) {
+		System.out.println(user);
 		usersDao.insert(user);
 		return new ResponseEntity<String>("ok", HttpStatus.OK);
 

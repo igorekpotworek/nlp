@@ -10,7 +10,7 @@ public class SparkContextFactory {
 
 	public static SparkContext getSparkContext() {
 		if (sc == null) {
-			SparkConf conf = new SparkConf().setAppName("NLP").setMaster("local[4]");
+			SparkConf conf = new SparkConf().setAppName("NLP").setMaster("local[1]");
 			sc = new SparkContext(conf);
 		}
 		return sc;

@@ -41,8 +41,9 @@ public class ArticlesDaoHbase extends NamedParameterJdbcDaoSupport implements Ar
 		SearchResponse response = null;
 		int i = 0;
 		while (response == null || response.getHits().hits().length != 0) {
-			response = client.prepareSearch("articles").setQuery(QueryBuilders.multiMatchQuery(sentence, "TITLE", "INTRO", "TEXT"))
-					.setSize(SCROLL_SIZE).setFrom(i * SCROLL_SIZE).execute().actionGet();
+			response = client.prepareSearch("articles")
+					.setQuery(QueryBuilders.multiMatchQuery(sentence, "TITLE", "INTRO", "TEXT").analyzer("polish")).setSize(SCROLL_SIZE)
+					.setFrom(i * SCROLL_SIZE).execute().actionGet();
 			for (SearchHit hit : response.getHits())
 				articles.add(converter.apply(hit.getSource()));
 

@@ -15,13 +15,12 @@ import pl.edu.agh.nlp.model.entities.Article;
 
 @RestController
 public class SearchController {
-
 	@Autowired
 	private ArticlesDao articlesDao;
 
 	@RequestMapping(value = "/search", method = RequestMethod.POST)
-	public ResponseEntity<List<Article>> search(@RequestBody String sentence) {
-		return new ResponseEntity<List<Article>>(articlesDao.searchArticles(sentence), HttpStatus.OK);
+	public ResponseEntity<List<Article>> search(@RequestBody SearchBody body) {
+		return new ResponseEntity<List<Article>>(articlesDao.searchArticles(body.getSentence()), HttpStatus.OK);
 	}
 
 }
