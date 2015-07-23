@@ -24,6 +24,7 @@ curl -XPUT 'localhost:9200/_river/articles/_meta' -d '{
         "password" : "postgres",
         "sql" : "select a.id as \"_id\", a.id as ID, a.title as TITLE, a.text as TEXT, a.intro as INTRO, a.category as CATEGORY from articles as a",
         "index" : "articles",
-        "type" : "article"
+        "type" : "article",
+		"schedule" : "0 0/30 0-23 ? * *"
     }
 }'

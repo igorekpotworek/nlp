@@ -1,22 +1,22 @@
 package pl.edu.agh.nlp;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
 import pl.edu.agh.nlp.elasticsearch.ElasticsearchSessionManager;
 
 @Component
-public class ApplicationStartup implements ApplicationListener<ContextRefreshedEvent> {
+public class ApplicationStartup implements InitializingBean {
+
 	private static final Logger logger = Logger.getLogger(ApplicationStartup.class);
 
 	@Autowired
 	private ElasticsearchSessionManager elasticsearchSessionManager;
 
 	@Override
-	public void onApplicationEvent(final ContextRefreshedEvent event) {
+	public void afterPropertiesSet() throws Exception {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {

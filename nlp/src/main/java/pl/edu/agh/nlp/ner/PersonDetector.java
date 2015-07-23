@@ -34,7 +34,7 @@ public class PersonDetector {
 
 	private static final String MODEL_FILE_NAME = "pl-ner-person.bin";
 	private static final String MODEL_TRAIN_FILE_NAME = "pl-ner-person.train";
-	private static final String MODEL_TEST_FILE_NAME = "pl-ner-person.train";
+	private static final String MODEL_TEST_FILE_NAME = "pl-ner-person.test";
 
 	private static final Logger logger = Logger.getLogger(PersonDetector.class);
 	private NameFinderME nameFinder;
@@ -57,7 +57,8 @@ public class PersonDetector {
 		Charset charset = Charset.forName("UTF-8");
 		ObjectStream<String> lineStream = null;
 		try {
-			lineStream = new PlainTextByLineStream(new ClassPathResource(MODEL_TRAIN_FILE_NAME).getInputStream(), charset);
+			lineStream = new PlainTextByLineStream(new ClassPathResource(MODEL_TRAIN_FILE_NAME).getInputStream(),
+					charset);
 		} catch (IOException e) {
 			logger.error("No training data file", e);
 		}
@@ -97,15 +98,15 @@ public class PersonDetector {
 		}
 	}
 
-	public void evaluateModel(NameFinderME nameFinder) {
+	private void evaluateModel(NameFinderME nameFinder) {
 		try {
-			ObjectStream<String> lineStream = new PlainTextByLineStream(new ClassPathResource(MODEL_TEST_FILE_NAME).getInputStream(),
-					Charset.forName("UTF-8"));
+			ObjectStream<String> lineStream = new PlainTextByLineStream(
+					new ClassPathResource(MODEL_TEST_FILE_NAME).getInputStream(), Charset.forName("UTF-8"));
 			ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream);
 			TokenNameFinderEvaluator evaluator = new TokenNameFinderEvaluator(nameFinder);
 			evaluator.evaluate(sampleStream);
 			FMeasure result = evaluator.getFMeasure();
-			System.out.println(result.toString());
+			logger.info(result.toString());
 		} catch (IOException e) {
 			logger.error("Model Evaluating Failed", e);
 
