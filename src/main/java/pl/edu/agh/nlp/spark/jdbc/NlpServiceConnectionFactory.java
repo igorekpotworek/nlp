@@ -1,14 +1,13 @@
 package pl.edu.agh.nlp.spark.jdbc;
 
-import java.sql.Connection;
-
-import javax.sql.DataSource;
-
 import org.apache.spark.rdd.JdbcRDD;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
 
 @Service
 public class NlpServiceConnectionFactory implements JdbcRDD.ConnectionFactory, ApplicationContextAware {
@@ -17,6 +16,7 @@ public class NlpServiceConnectionFactory implements JdbcRDD.ConnectionFactory, A
 	 * 
 	 */
 	private static final long serialVersionUID = 8564699495854982022L;
+
 	private static ApplicationContext CONTEXT;
 
 	@Override

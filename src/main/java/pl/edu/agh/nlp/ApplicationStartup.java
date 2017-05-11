@@ -1,16 +1,14 @@
 package pl.edu.agh.nlp;
 
-import org.apache.log4j.Logger;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import pl.edu.agh.nlp.elasticsearch.ElasticsearchSessionManager;
 
 @Component
+@Log4j
 public class ApplicationStartup implements InitializingBean {
-
-	private static final Logger logger = Logger.getLogger(ApplicationStartup.class);
 
 	@Autowired
 	private ElasticsearchSessionManager elasticsearchSessionManager;
@@ -20,7 +18,7 @@ public class ApplicationStartup implements InitializingBean {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {
-			logger.error("No suitable driver", e);
+			log.error("No suitable driver", e);
 		}
 		elasticsearchSessionManager.createSession();
 	}

@@ -1,10 +1,12 @@
 package pl.edu.agh.nlp.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.mllib.recommendation.Rating;
+
+import java.sql.ResultSet;
+
+import static pl.edu.agh.nlp.model.ResultSetExtension.getDoubleOrNull;
+import static pl.edu.agh.nlp.model.ResultSetExtension.getIntOrNull;
 
 public class RatingMapper implements Function<ResultSet, Rating> {
 
@@ -13,24 +15,15 @@ public class RatingMapper implements Function<ResultSet, Rating> {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private static final String USER_ID = "userId";
+	private static final String ARTICLE_ID = "articleId";
+	private static final String RATING = "rating";
+
 	@Override
 	public Rating call(ResultSet resultSet) throws Exception {
-		Integer userId = null;
-		Integer articleId = null;
-		Double rating = null;
-		try {
-			userId = resultSet.getInt("userId");
-		} catch (SQLException e) {
-		}
-		try {
-			articleId = resultSet.getInt("articleId");
-		} catch (SQLException e) {
-		}
-		try {
-			rating = resultSet.getDouble("rating");
-		} catch (SQLException e) {
-		}
-
-		return new Rating(userId.intValue(), articleId.intValue(), rating);
+		Integer userId = getIntOrNull(resultSet, USER_ID);
+		Integer articleId = getIntOrNull(resultSet,ARTICLE_ID);
+		Double rating = getDoubleOrNull(resultSet,RATING);
+		return new Rating(userId, articleId, rating);
 	}
 }

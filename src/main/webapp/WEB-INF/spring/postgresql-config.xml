@@ -15,23 +15,23 @@
 		<property name="password" value="${jdbc.password}" />
 	</bean>
 
-	<bean id="articlesDao" class="pl.edu.agh.nlp.model.postgresqlDao.ArticlesDaoPostgresql">
+	<bean id="articlesDao" class="pl.edu.agh.nlp.model.dao.postgresql.ArticlesDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsDaoPostgresql">
+	<bean id="topicsDao" class="pl.edu.agh.nlp.model.dao.postgresql.TopicsDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsArticlesDao" class="pl.edu.agh.nlp.model.postgresqlDao.TopicsArticlesDaoPostgresql">
+	<bean id="topicsArticlesDao" class="pl.edu.agh.nlp.model.dao.postgresql.TopicsArticlesDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="usersDao" class="pl.edu.agh.nlp.model.postgresqlDao.UsersDaoPostgresql">
+	<bean id="usersDao" class="pl.edu.agh.nlp.model.dao.postgresql.UsersDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 		
-	<bean id="ratesDao" class="pl.edu.agh.nlp.model.postgresqlDao.RatesDaoPostgresql">
+	<bean id="ratesDao" class="pl.edu.agh.nlp.model.dao.postgresql.RatesDaoPostgresql">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	

@@ -1,46 +1,38 @@
 package pl.edu.agh.nlp.model;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.apache.spark.api.java.function.Function;
-
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.model.entities.Article.Category;
 
+import java.sql.ResultSet;
+import java.util.Optional;
+
+import static pl.edu.agh.nlp.model.ResultSetExtension.getIntOrNull;
+import static pl.edu.agh.nlp.model.ResultSetExtension.getStringOrNull;
+
 public class ArticleMapper implements Function<ResultSet, Article> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+	private static final String INTRO = "intro";
+	private static final String TEXT = "text";
+	private static final String TITLE = "title";
+	private static final String ID = "id";
+	private static final String CATEGORY = "category";
 
 	@Override
 	public Article call(ResultSet resultSet) throws Exception {
+		Category category = Optional.ofNullable(getStringOrNull(resultSet,CATEGORY))
+				.map(String::toUpperCase)
+				.map(Category::valueOf)
+				.orElse(null);
 
-		Article article = new Article();
-		try {
-			article.setIntro(resultSet.getString("intro"));
-		} catch (SQLException e) {
-		}
-		try {
-			article.setText(resultSet.getString("text"));
-		} catch (SQLException e) {
-		}
-		try {
-			article.setTitle(resultSet.getString("title"));
-		} catch (SQLException e) {
-		}
-		try {
-			article.setId(resultSet.getInt("id"));
-		} catch (SQLException e) {
-		}
-
-		try {
-			article.setCategory(Category.valueOf(resultSet.getString("category").toUpperCase()));
-		} catch (NullPointerException | SQLException e) {
-		}
-
-		return article;
+		return Article.builder()
+				.intro(getStringOrNull(resultSet, INTRO))
+				.text(getStringOrNull(resultSet, TEXT))
+				.title(getStringOrNull(resultSet,TITLE))
+				.id(getIntOrNull(resultSet,ID))
+				.category(category)
+				.build();
 	}
+
+
 }

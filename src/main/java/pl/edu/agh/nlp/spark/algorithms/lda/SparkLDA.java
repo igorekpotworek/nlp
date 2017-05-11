@@ -1,9 +1,10 @@
 package pl.edu.agh.nlp.spark.algorithms.lda;
 
-import java.io.Serializable;
-import java.util.List;
-
-import org.apache.log4j.Logger;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.mllib.clustering.DistributedLDAModel;
@@ -14,121 +15,96 @@ import org.apache.spark.mllib.feature.IDFModel;
 import org.apache.spark.mllib.linalg.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-
-import pl.edu.agh.nlp.model.dao.TopicsArticlesDao;
-import pl.edu.agh.nlp.model.dao.TopicsDao;
 import pl.edu.agh.nlp.model.entities.Article;
 import pl.edu.agh.nlp.model.entities.Topic;
 import pl.edu.agh.nlp.model.entities.TopicArticle;
+import pl.edu.agh.nlp.model.services.TopicsService;
 import pl.edu.agh.nlp.spark.jdbc.ArticlesReader;
-import pl.edu.agh.nlp.utils.Tokenizer;
+import pl.edu.agh.nlp.text.Tokenizer;
 import scala.Tuple2;
 
+import java.io.Serializable;
+import java.util.List;
+
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Log4j
 public class SparkLDA implements Serializable {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -2830677796836853217L;
 
-	private static final Logger logger = Logger.getLogger(SparkLDA.class);
 	private static final HashingTF hashingTF = new HashingTF(1000000);
 
-	@Autowired
-	private Tokenizer tokenizer;
-	@Autowired
-	private TopicsDescriptionWriter topicsDescriptionWriter;
-	@Autowired
-	private TopicsDistributionWriter topicsDistributionWriter;
+	@NonNull
+	private final Tokenizer tokenizer;
 
-	@Autowired
-	private TopicsDao topicsDao;
-	@Autowired
-	private TopicsArticlesDao topicsArticlesDao;
+	@NonNull
+	private final transient TopicsService topicsService;
 
-	@Autowired
-	private ArticlesReader articlesReader;
+
+	@NonNull
+	private final ArticlesReader articlesReader;
 
 	public void buildModel() {
 		long time1 = System.currentTimeMillis();
 		JavaPairRDD<Long, List<String>> data = loadAndPrepareData();
 		long time2 = System.currentTimeMillis();
-		long buildTime = (time2 - time1);
-		logger.info("Time of loading and preparing data: " + buildTime + "ms");
+		log.info("Time of loading and preparing data: " + (time2 - time1) + "ms");
 
 		time1 = System.currentTimeMillis();
 		Multimap<Integer, String> mapping = createMapping(data);
 		time2 = System.currentTimeMillis();
-		buildTime = (time2 - time1);
-		logger.info("Time of creating mapping: " + buildTime + "ms");
+		log.info("Time of creating mapping: " + (time2 - time1) + "ms");
 
 		time1 = System.currentTimeMillis();
 		JavaPairRDD<Long, Vector> corpus = bulidCorpus(data);
 		corpus.cache();
 
 		time2 = System.currentTimeMillis();
-		buildTime = (time2 - time1);
-		logger.info("Time of building TFIDF model: " + buildTime + "ms");
+		log.info("Time of building TFIDF model: " + (time2 - time1) + "ms");
 
 		time1 = System.currentTimeMillis();
-		// Budowa modelu
 		DistributedLDAModel ldaModel = new LDA().setK(100).setAlpha(1.01).run(corpus);
 		time2 = System.currentTimeMillis();
-		buildTime = (time2 - time1);
-		logger.info("Time of building LDA model: " + buildTime + "ms");
+		log.info("Time of building LDA model: " + (time2 - time1) + "ms");
 
-		saveResults(getTopics(ldaModel, mapping), getTopicsArticles(ldaModel));
-		logger.info("Model ready");
+		topicsService.save(getTopics(ldaModel, mapping), getTopicsArticles(ldaModel));
+		log.info("Model ready");
 
 	}
 
 	private JavaPairRDD<Long, Vector> bulidCorpus(JavaPairRDD<Long, List<String>> data) {
-		// Budowa modelu TF
-		JavaPairRDD<Long, Vector> tfidfData = data.mapValues(f -> hashingTF.transform(f));
-		// Budowa modelu IDF, minimalna ilość wystapien - 30
+		JavaPairRDD<Long, Vector> tfidfData = data.mapValues(hashingTF::transform);
 		IDFModel idfModel = new IDF(30).fit(tfidfData.values());
-		tfidfData = tfidfData.mapValues(v -> idfModel.transform(v));
-		logger.info("LDA corpus created");
+		tfidfData = tfidfData.mapValues(idfModel::transform);
+		log.info("LDA corpus created");
 		return tfidfData;
 	}
 
 	private JavaPairRDD<Long, List<String>> loadAndPrepareData() {
-		// Wczytanie danych (artykulow) z bazy danych
 		JavaRDD<Article> data = articlesReader.readArticlesToRDD();
 		data = data.filter(a -> a.getText() != null && !a.getText().isEmpty());
-		// Tokenizacja, usuniecie slow zawierajacych znaki specjalne oraz cyfry, usuniecie slow o dlugosci < 2
-		return JavaPairRDD.fromJavaRDD(data.map(r -> new Tuple2<Long, List<String>>(r.getId().longValue(), tokenizer.tokenize(r.getText())))
+		return JavaPairRDD.fromJavaRDD(data.map(r -> new Tuple2<>(r.getId().longValue(), tokenizer.tokenize(r.getText())))
 				.filter(a -> !a._2.isEmpty()));
 	}
 
 	private Multimap<Integer, String> createMapping(JavaPairRDD<Long, List<String>> data) {
-		// Mapowanie wektorow TF na słowa
 		JavaRDD<String> tokens = data.values().flatMap(t -> t).distinct();
-		logger.info("Tokens count: " + tokens.count());
-		return Multimaps.index(tokens.toArray(), t -> hashingTF.indexOf(t));
+		log.info("Tokens count: " + tokens.count());
+		return Multimaps.index(tokens.collect(), hashingTF::indexOf);
 	}
 
 	private List<Topic> getTopics(DistributedLDAModel ldaModel, Multimap<Integer, String> mapping) {
-		// Opisanie topicow za pomoca slow wraz z wagami
 		Tuple2<int[], double[]>[] d = ldaModel.describeTopics(20);
-		topicsDescriptionWriter.writeToFile(d, mapping);
-		return topicsDescriptionWriter.convertToTopic(d, mapping);
+		return new TopicsDescriptionWriter().apply(d, mapping);
 	}
 
 	private List<TopicArticle> getTopicsArticles(DistributedLDAModel ldaModel) {
-		// Opisanie dokumentow za pomoca topicow wraz z wagami
-		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().toArray();
-		// TopicsDistributionWriter.writeToFile(td);
-		return topicsDistributionWriter.convertToTopicArticle(td);
+		List<Tuple2<Object, Vector>> td = ldaModel.topicDistributions().toJavaRDD().collect();
+		return new TopicsDistributionWriter().apply(td);
 	}
 
-	private void saveResults(List<Topic> topics, List<TopicArticle> topicsArticles) {
-		topicsDao.deleteAll();
-		topicsDao.insert(topics);
-		topicsArticlesDao.deleteAll();
-		topicsArticlesDao.insert(topicsArticles);
-	}
+
 }

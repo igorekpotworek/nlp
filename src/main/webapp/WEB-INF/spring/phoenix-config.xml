@@ -12,23 +12,23 @@
 		<property name="url" value="jdbc:phoenix:localhost" />
 	</bean>
 
-	<bean id="articlesDao" class="pl.edu.agh.nlp.model.hbaseDao.ArticlesDaoHbase">
+	<bean id="articlesDao" class="pl.edu.agh.nlp.model.dao.hbase.ArticlesDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsDao" class="pl.edu.agh.nlp.model.hbaseDao.TopicsDaoHbase">
+	<bean id="topicsDao" class="pl.edu.agh.nlp.model.dao.hbase.TopicsDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="topicsArticlesDao" class="pl.edu.agh.nlp.model.hbaseDao.TopicsArticlesDaoHbase">
+	<bean id="topicsArticlesDao" class="pl.edu.agh.nlp.model.dao.hbase.TopicsArticlesDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="usersDao" class="pl.edu.agh.nlp.model.hbaseDao.UsersDaoHbase">
+	<bean id="usersDao" class="pl.edu.agh.nlp.model.dao.hbase.UsersDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean id="ratesDao" class="pl.edu.agh.nlp.model.hbaseDao.RatesDaoHbase">
+	<bean id="ratesDao" class="pl.edu.agh.nlp.model.dao.hbase.RatesDaoHbase">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	

@@ -1,5 +1,19 @@
 package pl.edu.agh.nlp.ner;
 
+import lombok.NonNull;
+import lombok.extern.log4j.Log4j;
+import opennlp.tools.namefind.NameFinderME;
+import opennlp.tools.namefind.NameSample;
+import opennlp.tools.namefind.NameSampleDataStream;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.util.ObjectStream;
+import opennlp.tools.util.PlainTextByLineStream;
+import opennlp.tools.util.Span;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+import pl.edu.agh.nlp.exceptions.AbsentModelException;
+
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -11,58 +25,48 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import opennlp.tools.namefind.NameFinderME;
-import opennlp.tools.namefind.NameSample;
-import opennlp.tools.namefind.NameSampleDataStream;
-import opennlp.tools.namefind.TokenNameFinderEvaluator;
-import opennlp.tools.namefind.TokenNameFinderModel;
-import opennlp.tools.util.ObjectStream;
-import opennlp.tools.util.PlainTextByLineStream;
-import opennlp.tools.util.Span;
-import opennlp.tools.util.eval.FMeasure;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
-
-import pl.edu.agh.nlp.exceptions.AbsentModelException;
-import pl.edu.agh.nlp.utils.SentenceDetector;
-
 @Service
+@Log4j
 public class PersonDetector {
 
 	private static final String MODEL_FILE_NAME = "pl-ner-person.bin";
 	private static final String MODEL_TRAIN_FILE_NAME = "pl-ner-person.train";
-	private static final String MODEL_TEST_FILE_NAME = "pl-ner-person.test";
 
-	private static final Logger logger = Logger.getLogger(PersonDetector.class);
 	private NameFinderME nameFinder;
 
-	@Autowired
-	private SentenceDetector sentenceDetector;
+	@NonNull
+	private final SentenceDetector sentenceDetector;
+	@NonNull
+	private final NERModelEvaluator nerModelEvaluator;
 
-	public PersonDetector() {
+	@Autowired
+	public PersonDetector(@NonNull final SentenceDetector sentenceDetector, @NonNull final NERModelEvaluator nerModelEvaluator) {
+		this.sentenceDetector = sentenceDetector;
+		this.nerModelEvaluator = nerModelEvaluator;
 		try (InputStream modelIn = new ClassPathResource(MODEL_FILE_NAME).getInputStream()) {
 			TokenNameFinderModel model = new TokenNameFinderModel(modelIn);
 			nameFinder = new NameFinderME(model);
 		} catch (FileNotFoundException e) {
-			logger.error("No corpus file", e);
+			log.error("No corpus file", e);
 		} catch (IOException e) {
-			logger.error("Invalid Corpus File", e);
+			log.error("Invalid Corpus File", e);
 		}
 	}
 
 	public void buildModel() {
-		Charset charset = Charset.forName("UTF-8");
-		ObjectStream<String> lineStream = null;
 		try {
-			lineStream = new PlainTextByLineStream(new ClassPathResource(MODEL_TRAIN_FILE_NAME).getInputStream(),
+			Charset charset = Charset.forName("UTF-8");
+			ObjectStream<String> lineStream = new PlainTextByLineStream(new ClassPathResource(MODEL_TRAIN_FILE_NAME).getInputStream(),
 					charset);
+			ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream);
+			trainModel(sampleStream);
+			nerModelEvaluator.evaluateModel(nameFinder);
 		} catch (IOException e) {
-			logger.error("No training data file", e);
+			log.error("No training data file", e);
 		}
-		ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream);
+	}
+
+	private void trainModel(ObjectStream<NameSample> sampleStream) {
 		try {
 			TokenNameFinderModel model = NameFinderME.train("pl", "person", sampleStream, Collections.emptyMap());
 			try (OutputStream modelOut = new BufferedOutputStream(new FileOutputStream(MODEL_FILE_NAME))) {
@@ -70,25 +74,25 @@ public class PersonDetector {
 			}
 			nameFinder = new NameFinderME(model);
 		} catch (IOException e) {
-			logger.error("Model Training Failed", e);
+			log.error("Model Training Failed", e);
 		}
-		evaluateModel(nameFinder);
 	}
 
-	public List<String> detect(String document) throws AbsentModelException {
+	public List<String> detect(String document) {
 		if (nameFinder == null) {
 			throw new AbsentModelException();
 		} else {
-			List<String> detectedPersons = new ArrayList<String>();
+			List<String> detectedPersons = new ArrayList<>();
 			List<String> sentences = sentenceDetector.detectSentences(document);
 			for (String sentence : sentences) {
 				String[] tokens = sentence.split("\\s+");
 				Span[] nameSpans = nameFinder.find(tokens);
 				if (nameSpans.length > 0) {
-					for (int i = 0; i < nameSpans.length; i++) {
+					for (Span nameSpan : nameSpans) {
 						String person = "";
-						for (int j = nameSpans[i].getStart(); j < nameSpans[i].getEnd(); j++)
+						for (int j = nameSpan.getStart(); j < nameSpan.getEnd(); j++) {
 							person += tokens[j] + " ";
+						}
 						detectedPersons.add(person);
 					}
 				}
@@ -98,18 +102,5 @@ public class PersonDetector {
 		}
 	}
 
-	private void evaluateModel(NameFinderME nameFinder) {
-		try {
-			ObjectStream<String> lineStream = new PlainTextByLineStream(
-					new ClassPathResource(MODEL_TEST_FILE_NAME).getInputStream(), Charset.forName("UTF-8"));
-			ObjectStream<NameSample> sampleStream = new NameSampleDataStream(lineStream);
-			TokenNameFinderEvaluator evaluator = new TokenNameFinderEvaluator(nameFinder);
-			evaluator.evaluate(sampleStream);
-			FMeasure result = evaluator.getFMeasure();
-			logger.info(result.toString());
-		} catch (IOException e) {
-			logger.error("Model Evaluating Failed", e);
 
-		}
-	}
 }

@@ -1,18 +1,19 @@
 package pl.edu.agh.nlp.model.dao;
 
-import java.util.List;
-
 import pl.edu.agh.nlp.model.entities.Article;
+
+import java.util.List;
 
 public interface ArticlesDao {
 
-	public void insert(final Article article);
+	void save(final Article article);
 
-	public List<Article> searchArticles(final String sentence);
+	void save(final List<Article> articles);
 
-	public Article findById(final Integer id);
+	List<Article> findBySentence(final String sentence);
 
-	public List<Article> findAll();
+	Article findById(final Integer id);
 
-	public void updateBatch(final List<Article> articles);
+	List<Article> findAll();
+
 }

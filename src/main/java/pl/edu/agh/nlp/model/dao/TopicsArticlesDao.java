@@ -1,14 +1,14 @@
 package pl.edu.agh.nlp.model.dao;
 
-import java.util.List;
-
 import pl.edu.agh.nlp.model.entities.TopicArticle;
+
+import java.util.List;
 
 public interface TopicsArticlesDao {
 
-	public void insert(final List<TopicArticle> topics);
+	void save(final List<TopicArticle> topics);
 
-	public List<TopicArticle> findByTopicsByArticleId(final Integer articleId);
+	List<TopicArticle> findByTopicsByArticleId(final Integer articleId);
 
-	public void deleteAll();
+	void deleteAll();
 }

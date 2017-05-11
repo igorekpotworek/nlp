@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ElasticsearchSessionManager {
+
 	private Client client;
 
 	@SuppressWarnings("resource")

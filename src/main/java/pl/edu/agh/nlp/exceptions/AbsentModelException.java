@@ -1,18 +1,10 @@
 package pl.edu.agh.nlp.exceptions;
 
-public class AbsentModelException extends Exception {
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
+public class AbsentModelException extends IllegalStateException {
 
 	private static final long serialVersionUID = 1L;
 
-	public AbsentModelException() {
-		super();
-	}
-
-	public AbsentModelException(String bodyExceptionMessage) {
-		super(bodyExceptionMessage);
-	}
-
-	public AbsentModelException(Exception e) {
-		super(e);
-	}
 }
